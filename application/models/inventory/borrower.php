@@ -25,25 +25,6 @@ class Borrower extends CI_Model
 		return $resultArray;
 	}
 
-	public function CreateBorrower($aBorrowerName)
-	{
-		$sql = "INSERT INTO BORRROWER (ENTITYNAME)
-				VALUES $aBorrowerName";
-
-		$this->db->trans_begin(); //Run query to insert new borrower as a transaction that can be rolled back if it fails
-
-		$this->db->query($sql);
-
-		if($this->db->trans_status() === FALSE)
-		{
-			$this->db->trans_rollback();
-		}
-		else
-		{
-			$this->db->trans_commit();
-		}
-	}
-
 
 }
 

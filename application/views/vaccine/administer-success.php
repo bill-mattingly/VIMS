@@ -1,18 +1,18 @@
 <!--Body opened in header-->
 
-	<h1>Invoice Transaction Summary</h1>
-	<br/>
-	
-	<p>Vaccine Administered!</p>
+	<p>Vaccine was Administered Successfully</p>
 
-	<h2>Transaction Summary</h2>
+	<br/>
+	<p>Transaction Summary:</p>
+
 	<?php
-		echo $tblSummary;
+		echo $AdminTrans;
 		echo "<br/><br/>";
 		
-		echo anchor("Inventory/ScanAdminister", "Administer Another Vaccine", array('id' => 'ScanAdminister'));
-	?>
+		// echo $InventorySum;
 
-	
+		echo "<br/><br/>";		
+		echo anchor("Inventory/Administer", "Administer Another Vaccine");
+	?>
 
 <!--Body closed in footer-->

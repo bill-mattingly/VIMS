@@ -1,122 +1,55 @@
-<!--Body opened in header-->
+
+
+<!-- <!Doctype html>
+// <html>
+// <head>
+// 	<title></title>
+// </head>
+
+// <body> -->
 		
-	<div class="row">
+		<h1>Vaccine Order Form</h1>
+		<p>Please Add Vaccines To Clinic Inventory By Filling Out The Below Form:</p>
 
-			<h1 id="invoice-heading">Vaccine Order Form</h1>
-			<p id="invoice-text">Please Add Vaccines To Clinic Inventory By Filling Out The Below Form:</p>
+		<?php
+			echo validation_errors();
+			echo form_open('Inventory/Order');
+		?>
 
-			<?php
-				echo validation_errors();
-
-				$attributes = array('id' => 'invoice-form');
-				echo form_open('Inventory/Invoice', $attributes);
+		<label for="linBarcode">Barcode:</label>
+		<input id="linBarcode" type="text" name="linBarcode"><br/>
 		
-				//Begin form fields
-				echo "<div class='form-group'>";
-					echo "<label for='ndc10' class='actionform'>NDC 10:</label>";
-					echo "<input id='ndc10' type='text' name='ndc10' readonly value=".$ndc10."><br/>";
-				echo "</div>"; //End .form-group
+		<label for="expireDate">Expiration Date:</label>
+		<input id="expireDate" type="date" name="expireDate"><br/>
+		
+		<label for="lotNum">Lot Number:</label>
+		<input id="lotNum" type="text" name="lotNum"><br/>
 
-			    // echo "<div class='form-group'>";
-				// 	echo "<label for='ndc11' class='actionform'>HIPAA NDC 11:</label>";
-				// 	echo "<input id='ndc11' type='text' name='ndc11' readonly value=".$ndc11."><br/>";
-				// echo "</div>"; //End .form-group
+		<label for="clinicCost">Cost Per Dose:</label>
+		<input id="clinicCost" type="text" name="clinicCost"><br/>
 
-				echo "<div class='form-group'>";
-					echo "<label for='lotNum' class='actionform'>Lot Number:</label>";
-					echo "<input id='lotNum' type='text' name='lotNum' value=".$lotNum."><br/>";
-				echo "</div>"; //End .form-group
+		<label for="packageQty">Total # of Packages:</label>
+		<input id="packageQty" type="text" name="packageQty"><br/>
 
-				echo "<div class='form-group'>";
-					echo "<label for='datepicker' class='actionform'>Expiration Date (mm/dd/yyyy):</label>";
-					echo "<input id='datepicker' type='text' name='expireDate' value=".$expireDate."><br/>";
-				echo "</div>"; //End .form-group
-
-				echo "<div class='form-group'>";
-					echo "<label for='clinicCost' class='actionform'>Cost Per Dose:</label>";
-					echo "<input id='clinicCost' type='text' name='clinicCost' value=".$clinicCost."><br/>";
-				echo "</div>"; //End .form-group
-
-			?>
-
-			<div class="form-group">
-				<label id="packageQtyError"></label> <!--Provides error message if validation for packageQty field fails (i.e. if packageQty field <= 0) -->
-				<label for="packageQty" class='actionform'>Total # of Packages:</label>
-				<input id="packageQty" type="number" name="packageQty" min='1'><br/>
-			</div> <!-- /End .form-group -->
-
-			<div class="form-group">
-				<label for="dosesPerPackage" class='actionform'>Doses Per Package</label>
-				<?php
-					echo "<input id='dosesPerPackage' type='number' name='dosesPerPackage' value=".$numDosesPackage." readonly><br/>"
-				?>
-			</div> <!-- /End .form-group -->
-
-			<div class="form-group">
-				<input type="submit" name="Add" value="Add">
-			</div> <!-- /End .form-group -->
-
-		</form>
-
-		<!--Cancel button to get the user out of the invoice process-->
-		<button type="button"><?php echo anchor("Inventory/Index", "Cancel"); ?></button>
-
-	</div> <!-- /End .row -->
-
-
-<!--	
-	 <script type="text/javascript" src="<?php //echo base_url()?>js/script.js">
-	 </script>
--->
-
-		<script>
-			$(document).ready(function(){
-				$("#packageQtyError").html(''); //Clear packageQtyError message
-				$("#packageQtyError").css('display', 'hidden');
-
-				//Validate package quantity
-				$("#packageQty").keyup(function(){
-					var invoiceQty = Number($(this).val());
-
-					if(invoiceQty == NaN)
-					{
-						//Display & set error message
-						$("#packageQtyError").css('display', 'block');
-						$("#packageQtyError").html("Enter a Number");
-
-						//Clear value in packageQty textbox
-						$("#packageQty").val('');
-					}
-					else if(invoiceQty <= 0)
-					{
-						var minQty = $("#packageQty").attr('min');
-
-						//Display & set error message in packageQtyError label element
-						$("#packageQtyError").css('display', 'block');
-
-						if(minQty == 1)
-						{
-							$("#packageQtyError").html("Cannot Add Less than 1 Package");
-							
-						}
-						else
-						{
-							$("#packageQtyError").html("Cannot Add Less than " + minQty + " Packages");
-						}
-
-						//Set packageQty field = to the minimum quantity (as specified in the <input> element)
-						$("#packageQty").val(minQty);
-
-					}
-					else
-					{
-						//Hide & clear error message
-						$("#packageQtyError").css('display', 'hidden');
-						$("#packageQtyError").html('');
-					}
-				});
-			});
-
-		</script>
+		<label for="dosesPerPackage">Doses Per Package</label>
+		<input id="dosesPerPackage" type="text" name="dosesPerPackage"><br/>
+		
+		<input type="submit" name="Add" value="Add">
+	</form>
 
 <!--Body tag closed in the footer page-->
+
+<!--	<script>
+		/*function store()
+		{
+			sessionStorage.setItem('linBarcode', document.getElementById('linBarcode').value);
+			sessionStorage.setItem('expireDate', document.getElementById('expireDate').value);
+			sessionStorage.setItem('lotNum', document.getElementById('lotNum').value);
+			sessionStorage.setItem('clinicCost', document.getElementById('clinicCost').value);
+			sessionStorage.setItem('packageQty', document.getElementById('packageQty').value);
+			sessionStorage.setItem('dosesPerPackage', document.getElementById('dosesPerPackage').value);
+		}*/
+	</script>
+
+</body>
+</html> -->

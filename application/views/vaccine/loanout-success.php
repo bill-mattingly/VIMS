@@ -1,16 +1,28 @@
-<!-- Body opened in header -->
-	
-	<h1>Vaccine Loan Summary</h1>
+<!--
+//<!Doctype html>
+//<html>
+//<head>
+//	<title></title>
+//</head>
+
+//<body>
+-->
+
+	<p>Vaccine loan was successful</p>
+
 	<br/>
+	<p>Transaction Summary:</p>
 
-	<p>Loan Successful!</p>
-
-	<h2>Transaction Summary</h2>
 	<?php
-		echo $tblSummary;
+		//echo //$AdminTrans;
 		echo "<br/><br/>";
+		//echo "Here is the borrowerid: $borrowerID<br/>";
 
-		echo anchor("Inventory/ScanLoanOut", "Create New Loan", array('id' => 'ScanLoanOut'));
+		echo $transSummary;
+
+		echo "<br/><br/>";		
+		echo anchor("Inventory/LoanOut", "Loan Another Vaccine");
 	?>
 
-<!-- Body closed in footer -->
+<!--</body>
+</html>-->

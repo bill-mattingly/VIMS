@@ -1,40 +1,32 @@
 <!--Body opened in header-->
 
-	
-	<h1 id="select-heading">Select Vaccine</h1>
+<!--<?php
+	//	$ndc = $vacList[0]->SaleNDC10;
+	//	echo "<p>Vaccines with NDC Code: $ndc</p>";
+	?> -->
 
-	<p id="select-text">Select the Option Which Best Describes the Vaccine:</p>
+	<!--Open form using w/ CodeIgniter validation-->
+	<!-- // $formAttributes = array('id' => 'vacForm', 'data-NDCNum' => '\''.$vacList[0]->SaleNDC10.'\''); -->
 
 	<?php
 		echo validation_errors();
-
-		$attributes = array('id' => 'select-form');
-		echo form_open("Inventory/SelectVacFromList", $attributes); // /$ndc10
+		echo form_open("Inventory/SelectVacFromList/$ndc"); // /$ndc )", $formAttributes);
 	?>
-		<div class="form-group">
-			<select id="vaccineList" name="vaccineList">
-				<option value='-1' selected>Select a Description</option>
 
-					<?php
-						$indexVal = 0;
+		<p>Please Select The Option Which Best Describes The Product on The Invoice:</p>
 
-						foreach($vacList as $vaccine)
-						{
-							//var_dump($vaccine);
-							//$indexVal (rather than drugID) is used for value so that the index of the selected vaccine in the vacList array can be chosen in the controller
-							echo "<option value='$indexVal'>".$vaccine->{'Package Description'}."</option>"; //PackageDescrip</option>";
-							$indexVal++;
-						}
-					?>
+		<select id="vaccineList" name="vaccineList"> <!-- id=\"vaccineList\"  onclick=\"hello();\"> -->
+			<option value='-1' selected>&lt;Select Description&gt;</option>
 
-			</select>
-		</div>
+				<?php
+					foreach($vacList as $vaccine)
+					{
+						echo "<option value='$vaccine->DrugID'>$vaccine->PackageDescrip</option>";
+					}
+				?>
 
-		<div class="form-group">
-			<input id="select-submit" type="submit" value="Select">
-		</div>
+		</select>
+		<input type="submit" value="Select">
 	</form>
-
-	<button type='button' id='cancelBtn'><a href="<?php echo site_url('Inventory/Index') ?>">Cancel</a></button>
 
 <!--Body closed in footer -->
