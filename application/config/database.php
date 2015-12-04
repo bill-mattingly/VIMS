@@ -64,10 +64,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost', //'localhost', //(original)
-	'username' => 'root', //'', //(original)
-	'password' => '', //'', //(original)
-	'database' => 'clinicportal', //'', //(original)
+	'hostname' => 'ctrsu.org', //'localhost', //'ctrsu.org',
+	'username' => 'root', //'root',
+	'password' => 'hard#hat', //'',//'hard#hat',
+	'database' => 'VaccineInventory', //'clinicportal',//'Vaccine_Inventory',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
