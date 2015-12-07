@@ -2227,8 +2227,8 @@ function RegisterUser()
 } //End RegisterUser()
 
 
-//Used by manage-user view
-function UpdateUser()
+//used by #manageEmail.focusout() event in manage-users.php view
+function CheckUserEmail()
 {
 	$userid = $this->input->post('UserID');
 	$email = $this->input->post('Email');
@@ -2295,7 +2295,49 @@ function UpdateUser()
 
 //	echo json_encode("Hi");
 
+} //End CheckUserEmail()
+
+
+//Used by manage-user view, btnUpdateUser.click()
+function UpdateUser()
+{
+	$userID = $this->input->post('UserID');
+
+	//Data to be used in the $userData array
+	$fName = $this->input->post('FName');
+	$lName = $this->input->post('LName');
+	$email = $this->input->post('Email');
+
+	$userData = array(
+			"first_name" => $fName,
+			"last_name" => $lName,
+			"email" => $email
+		);
+
+	//ion_auth->update() returns TRUE if successful & FALSE if unsuccessful
+	$updateResult = $this->ion_auth->update($userID, $userData);
+
+	$returnResult = array(
+			'wasSuccess' => $updateResult,
+			'userFeedback' => null
+		);
+
+
+	if($updateResult)
+	{
+		$returnResult['userFeedback'] = "$fName $lName updated successfully";
+	} //End if
+	else
+	{
+		$returnResult['userFeedback'] = "Update of $fName $lName failed";
+	} //End else
+
+	//Return result to AJAX calling method
+	echo json_encode($returnResult);
+
+
 } //End UpdateUser()
+
 
 //Used by manage-user view
 function DeleteUser()

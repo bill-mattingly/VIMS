@@ -228,7 +228,7 @@ $("#manageEmail").focusout(function(){
 	var email = $("#manageEmail").val();
 
 	$.ajax({
-		url: "<?php echo site_url('Inventory/UpdateUser'); ?>",
+		url: "<?php echo site_url('Inventory/CheckUserEmail'); ?>",
 		method: "POST",
 		data: {'UserID': userid, 'Email': email},
 		dataType: "JSON",
@@ -285,14 +285,48 @@ $("#manageEmail").focusout(function(){
 
 
 $("#btnUpdateUser").click(function(){
-	alert("hi");
+	
+	var userID = $("#manageUserList").val();
+	var fName = $("#manageFName").val();
+	var lName = $("#manageLName").val();
+	var email = $("#manageEmail").val();
+
+	$.ajax({
+		url: "<?php echo site_url('Inventory/UpdateUser'); ?>",
+		method: "POST",
+		data: {'UserID': userID, 'FName': fName, 'LName': lName, 'Email': email},
+		dataType: "JSON",
+		success: function(result){
+			result.wasSuccess
+			result.userFeedback
+
+			if(result.wasSuccess)
+			{
+				DisplaySuccessMsg();
+				$("#userMsg").html(result.userFeedback);
+			} //End if
+			else
+			{
+				DisplayErrorMsg();
+				$("#userMsg").html(result.userFeedback);
+			} //End else
+
+			//Set focus to user list
+			$("#manageUserList").focus();
+
+
+		}, //End success
+		error: function(errorResult){
+			console.log("An error occurred when updating the user");
+		} //End error
+	});
 
 
 
 }); //End #btnUpdateUser.click()
 
 $("#btnDeleteUser").click(function(){
-	alert('hi');
+	alert("hi");
 
 }); //End #btnDeleteUser.click()
 
@@ -302,7 +336,7 @@ $("#registerUsername").focusout(function(){
 	var username = $("#registerUsername").val();
 	username = username.trim();
 
-	if(sessionStorage.getItem('usernameOK') == 'TRUE')
+	if(sessionStorage.getItem("usernameOK") == "TRUE")
 	{
 		return;
 	}
