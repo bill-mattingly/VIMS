@@ -448,7 +448,7 @@
 					}
 					$("#borrowerUserMsg").html(borrowerMsg);
 					$("#borrowerUserMsg").css('display', 'block');
-					$("#borrowerUserMsg").css('background-color', '#99FFCC');
+					$("#borrowerUserMsg").css('background-color', '#99ccff'); //#99FFCC
 
 
 					//Clear the editBorrowerControls

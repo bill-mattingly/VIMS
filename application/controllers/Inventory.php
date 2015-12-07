@@ -2470,15 +2470,15 @@ function EditBorrowers()
 	switch($action)
 	{
 		case 'add': //Get information from fields and add to borrower table
-			$sql = "INSERT INTO BORROWER (ENTITYNAME, CONTACT_NAME, PHONE, EMAIL) 
+			$sql = "INSERT INTO borrower (ENTITYNAME, CONTACT_NAME, PHONE, EMAIL) 
 					VALUES ('$name', '$contact', '$phone', '$email')";
 
 			$qryMaxID = "SELECT MAX(BORROWERID) as ID
-						 FROM BORROWER"; //For assigning the borrowerID session variable
+						 FROM borrower"; //For assigning the borrowerID session variable
 
 			break; //End case: add
 		case 'edit': //Get information from fields and update the selected borrower
-			$sql = "UPDATE BORROWER
+			$sql = "UPDATE borrower
 					SET ENTITYNAME = '$name', CONTACT_NAME = '$contact', PHONE = '$phone', EMAIL = '$email'
 					WHERE BORROWERID = $id";
 
@@ -2488,7 +2488,7 @@ function EditBorrowers()
 			break; //End case: edit
 		case 'delete': //Remove the selected borrower from the borrower table
 			//Query to delete borrower
-			$sql = "DELETE FROM BORROWER
+			$sql = "DELETE FROM borrower
 					WHERE BORROWERID = $id";
 
 			break; //End case: delete
@@ -2498,7 +2498,7 @@ function EditBorrowers()
 	}
 
 	$newBorrowers = "SELECT BORROWERID as Id, ENTITYNAME as Name
-					 FROM BORROWER 
+					 FROM borrower 
 					 ORDER BY ENTITYNAME ASC";
 
 	$this->db->trans_begin();
