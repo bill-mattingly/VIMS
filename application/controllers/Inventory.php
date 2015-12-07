@@ -2230,7 +2230,7 @@ function RegisterUser()
 //Used by manage-user view
 function UpdateUser()
 {
-	$id = $this->input->post('UserID');
+	$userid = $this->input->post('UserID');
 	$email = $this->input->post('Email');
 
 
@@ -2245,10 +2245,11 @@ function UpdateUser()
 	$rowCount = count($resultArray);
 
 	//Method return variable
-	$returnArray = {
+	$returnArray = array(
 		'emailChanged' => null,
-		'emailExists' => null
-	};
+		'emailExists' => null,
+		'email' => null
+	);
 
 	if($rowCount == 0 || $rowCount == 1)
 	{
@@ -2256,16 +2257,18 @@ function UpdateUser()
 		{
 			$returnArray['emailChanged'] = 'TRUE';
 			$returnArray['emailExists'] = 'FALSE';
+			$returnArray['email'] = $email;
 
 			echo json_encode($returnArray);
 
 		} //End if
 		else //If 'else' runs, then row count == 1. Check the id from the query against the userid variable to make sure they match. If they match, then the email didn't change (return 'FALSE' for $returnArray['emailChanged']). If they don't match then email is in use by another user (return TRUE for $returnArray['emailExists'])
 		{
-			if($resultArray[1]['id'] == $userid)
+			if($resultArray[0]->id == $userid)
 			{
 				$returnArray['emailChanged'] = 'FALSE';
 				$returnArray['emailExists'] = 'TRUE'; 
+				$returnArray['email'] = $email;
 
 				echo json_encode($returnArray);
 
@@ -2274,6 +2277,7 @@ function UpdateUser()
 			{
 				$returnArray['emailChanged'] = 'TRUE';
 				$returnArray['emailExists'] = 'TRUE';
+				$returbArray['email'] = $email;
 
 				echo json_encode($returnArray);
 

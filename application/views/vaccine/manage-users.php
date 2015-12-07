@@ -233,10 +233,50 @@ $("#manageEmail").focusout(function(){
 		data: {'UserID': userid, 'Email': email},
 		dataType: "JSON",
 		success: function(emailResult){
-			
+			//console.log('hi');
+
+			emailResult.emailExists
+			emailResult.emailChanged
+
+			if(emailResult.emailChanged == "TRUE")
+			{
+				if(emailResult.emailExists == "TRUE") //If email was changed and it exists, then the requested email is already in use & the user needs to use another email
+				{					
+					DisplayErrorMsg();
+					var msg = "'" + emailResult.email + "' already in use. Please use a different email";
+					$("#userMsg").html(msg);
+
+					//Clear email field & set focus to the email field
+					$("#manageEmail").val('');
+					$("#manageEmail").focus();
+
+				} //End if
+				else //Means email was changed, but doesn't exist. Thus, email is ok to use
+				{
+					DisplaySuccessMsg();
+					var msg = "'" + emailResult.email + "' is not in use.";
+					$("#userMsg").html(msg);
+
+					//Set focus to #manageFName field
+					$("#manageFName").focus();
+
+				} //End else
+			} //End if
+			else //Executes if email wasn't changed
+			{
+				DisplaySuccessMsg();
+				var msg = "Email was not changed";
+				$("#userMsg").html(msg);
+
+				//Set focus to #manageFName field
+				$("#manageFName").focus();
+
+			} //End else
+
+
 		}, //End success
 		error: function(errorResult){
-
+			Console.log("An error occurred");
 		} //End error
 
 	}); //End $.ajax()
