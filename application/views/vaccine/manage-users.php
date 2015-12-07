@@ -69,7 +69,9 @@
 				<label id='manageEmail_label' class='manageUserControl' for='manageEmail'>Email:</label>
 				<input id="manageEmail" class='manageUserControl' type="text" name='manageEmail'><br/>
 
+	<!-- (Add later)
 				<button id='btnResetPass'>Reset Password</button><br/>
+	-->
 
 			<!--
 				<label id='managePassword_label' class='manageUserControl' for='managePassword'>Change Password:</label>
@@ -220,8 +222,32 @@ $("#btnRegisterUser").click(function(){
 }); //End #btnRegisterUser.click()
 
 
+//Check if email == existing email (if so, exit. If not, check to make sure email != any other email)
+$("#manageEmail").focusout(function(){
+	var userid = $("#manageUserList").val();
+	var email = $("#manageEmail").val();
+
+	$.ajax({
+		url: "<?php echo site_url('Inventory/UpdateUser'); ?>",
+		method: "POST",
+		data: {'UserID': userid, 'Email': email},
+		dataType: "JSON",
+		success: function(emailResult){
+			
+		}, //End success
+		error: function(errorResult){
+
+		} //End error
+
+	}); //End $.ajax()
+
+}); //End #manageEmail.focusout()
+
+
 $("#btnUpdateUser").click(function(){
 	alert("hi");
+
+
 
 }); //End #btnUpdateUser.click()
 

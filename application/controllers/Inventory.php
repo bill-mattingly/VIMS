@@ -2230,7 +2230,67 @@ function RegisterUser()
 //Used by manage-user view
 function UpdateUser()
 {
-	echo json_encode("Hi");
+	$id = $this->input->post('UserID');
+	$email = $this->input->post('Email');
+
+
+	//Check to see if email is same as existing email (if different, check to see if it is the same as any other email in the system)
+	$sql = "SELECT id
+			FROM users
+			WHERE email = '$email'";
+
+	$result = $this->db->query($sql);
+	$resultArray = $result->result();
+
+	$rowCount = count($resultArray);
+
+	//Method return variable
+	$returnArray = {
+		'emailChanged' => null,
+		'emailExists' => null
+	};
+
+	if($rowCount == 0 || $rowCount == 1)
+	{
+		if($rowCount == 0) //If row count is 0, then the query result was null & the email doesn't exist in the system
+		{
+			$returnArray['emailChanged'] = 'TRUE';
+			$returnArray['emailExists'] = 'FALSE';
+
+			echo json_encode($returnArray);
+
+		} //End if
+		else //If 'else' runs, then row count == 1. Check the id from the query against the userid variable to make sure they match. If they match, then the email didn't change (return 'FALSE' for $returnArray['emailChanged']). If they don't match then email is in use by another user (return TRUE for $returnArray['emailExists'])
+		{
+			if($resultArray[1]['id'] == $userid)
+			{
+				$returnArray['emailChanged'] = 'FALSE';
+				$returnArray['emailExists'] = 'TRUE'; 
+
+				echo json_encode($returnArray);
+
+			} //End if
+			else
+			{
+				$returnArray['emailChanged'] = 'TRUE';
+				$returnArray['emailExists'] = 'TRUE';
+
+				echo json_encode($returnArray);
+
+			} //End else
+
+		} //End else
+	} //End if
+	else //If array size is greater than 1, then an error occurred (more than 1 user uses the same email)
+	{
+		// $returnArray['emailChanged'] = 'FALSE';
+		// $returnArray['emailExists'] = 'TRUE';
+
+	} //End else
+
+
+//	echo json_encode("Hi");
+
 } //End UpdateUser()
 
 //Used by manage-user view
