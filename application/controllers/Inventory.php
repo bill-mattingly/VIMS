@@ -2339,13 +2339,35 @@ function UpdateUser()
 } //End UpdateUser()
 
 
-//Used by manage-user view
+//Used by manage-user view, btnDeleteUser.click() event
 function DeleteUser()
 {
-	echo json_encode("Hi");
+	$userID = $this->input->post('UserID');
+	$fName = $this->input->post('FName');
+	$lName = $this->input->post('LName');
+
+	//ion_auth->delete_user returns TRUE if delete successful & FALSE if unsuccessful
+	$result = $this->ion_auth->delete_user($userID);
+
+	$returnResult = array(
+			'wasSuccess' => $result,
+			'userFeedback' => null
+		);
+
+	if($result)
+	{
+		$returnResult['userFeedback'] = "$fName $lName successfully deleted";
+	} //End if
+	else
+	{
+		$returnResult['userFeedback'] = "$fName $lName was not successfully deleted";
+	} //End else
+
+	//Return result to AJAX function
+	echo json_encode($returnResult);
+
+	//echo json_encode("Hi");
 } //End DeleteUser()
-
-
 
 
 //Used by manage-user view (the "Register" form)

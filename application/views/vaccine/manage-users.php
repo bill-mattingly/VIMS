@@ -58,9 +58,12 @@
 	?>
 
 	<div id='manageUserForm'>
+
+		<select id='manageUserList'>
+		</select> <!-- /End #userList -->
+
 		<div id="manageFormControls">
-			<select id='manageUserList'>
-			</select> <!-- /End #userList -->
+			
 
 			<div class="form-group">
 				<label id='manageUsername_label' class='manageUserControl' for='manageUsername'>Username:</label>
@@ -87,15 +90,13 @@
 				<label id='manageLName_label' class='manageUserControl' for='manageLName'>Last Name:</label>
 				<input id='manageLName' class='manageUserControl' type='text' name='manageLName'><br/>
 			</div> <!-- /End .form-group -->
+
+			<!--Form submit buttons-->
+			<input id='btnUpdateUser' type='button' value='Update' name='btnUpdateUser'>
+			<button id='btnDeleteUser'>Delete</button>
 		</div> <!-- /End #manageFormControls -->
 
-		<!--Form submit buttons-->
-		<input id='btnUpdateUser' type='button' value='Update' name='btnUpdateUser'>
-		<button id='btnDeleteUser'>Delete</button>
-
-
-<!--	</form> /end #manageUserForm -->
-	</div> <!-- /end #manageUserForm -->
+	</div> <!-- /End #manageUserForm -->
 
 
 	<!-- Full screen image to display for AJAX requests -->
@@ -326,7 +327,47 @@ $("#btnUpdateUser").click(function(){
 }); //End #btnUpdateUser.click()
 
 $("#btnDeleteUser").click(function(){
-	alert("hi");
+	
+	var fName = $("#manageFName").val();
+	var lName = $("#manageLName").val();
+	var userID = $("#manageUserList").val();
+
+	$.ajax({
+		url: "<?php echo site_url('Inventory/DeleteUser'); ?>",
+		method: "POST",
+		data: {'UserID': userID, 'FName': fName, 'LName': lName},
+		dataType: "JSON",
+		success: function(result){
+
+			//Test whether or not user was successfully deleted
+			if(result.wasSuccess)
+			{
+				DisplaySuccessMsg();
+				$("#userMsg").html(result.userFeedback);
+
+				//Repopulate the #manageUserList select element so the deleted user no longer appears in the selection
+				GetUserList();
+
+				//Set the #manageUserList select element to -1 (default selection)
+				$("#manageUserList").val(-1);
+
+				//Hide the manage user form controls (except for select element)
+				$("#manageFormControls").css('display', 'none');
+
+
+			} //End if
+			else
+			{
+				DisplayErrorMsg();
+				$("#userMsg").html(result.userFeedback);
+			} //End else
+
+		}, //End success function
+		error: function(errorResult){
+			Console.log("An error occurred when attempting to delete the user");
+		} //End error function
+
+	}); //End ajax()
 
 }); //End #btnDeleteUser.click()
 
@@ -385,7 +426,7 @@ $("#registerUsername").focusout(function(){
 				} //End if
 				else
 				{
-					var msg = usernameResult.username + " is available";
+					var msg = "'" + usernameResult.username + "' is available";
 					$("#userMsg").html(msg);
 
 					//Display userMsg element
@@ -473,7 +514,7 @@ $("#registerEmail").focusout(function(){
 				} //End if
 				else
 				{
-					var msg = emailResult.email + " is available";
+					var msg = "'" + emailResult.email + "' is available";
 					$("#userMsg").html(msg);
 
 					//Display userMsg element
@@ -574,11 +615,15 @@ function DisplaySuccessMsg()
 } //End DisplayErrorMsg()
 
 //Used to determine which content is displayed in the #manageUserForm (controls for "Register" or for "Modify")
-function DisplayForm(theFormType)
+function DisplayForm(theFormType) //theFormType can have values either 'register' or 'manage'
 {
 	// //Hide both form control types (2 types: 'register' & 'manage')
 //	$("#registerFormControls").css('display', 'none');
 //	$("#manageFormControls").css('display', 'none');
+
+	//Hide the #userMsg element & clear any value in it
+	$("#userMsg").html('');
+	$("#userMsg").css('display', 'none');
 	
 	$('#registerUserForm').css('display', 'none');
 	$('#manageUserForm').css('display', 'none');
