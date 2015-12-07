@@ -2227,19 +2227,147 @@ function RegisterUser()
 } //End RegisterUser()
 
 
-//Used by manage-user view
+//used by #manageEmail.focusout() event in manage-users.php view
+function CheckUserEmail()
+{
+	$userid = $this->input->post('UserID');
+	$email = $this->input->post('Email');
+
+
+	//Check to see if email is same as existing email (if different, check to see if it is the same as any other email in the system)
+	$sql = "SELECT id
+			FROM users
+			WHERE email = '$email'";
+
+	$result = $this->db->query($sql);
+	$resultArray = $result->result();
+
+	$rowCount = count($resultArray);
+
+	//Method return variable
+	$returnArray = array(
+		'emailChanged' => null,
+		'emailExists' => null,
+		'email' => null
+	);
+
+	if($rowCount == 0 || $rowCount == 1)
+	{
+		if($rowCount == 0) //If row count is 0, then the query result was null & the email doesn't exist in the system
+		{
+			$returnArray['emailChanged'] = 'TRUE';
+			$returnArray['emailExists'] = 'FALSE';
+			$returnArray['email'] = $email;
+
+			echo json_encode($returnArray);
+
+		} //End if
+		else //If 'else' runs, then row count == 1. Check the id from the query against the userid variable to make sure they match. If they match, then the email didn't change (return 'FALSE' for $returnArray['emailChanged']). If they don't match then email is in use by another user (return TRUE for $returnArray['emailExists'])
+		{
+			if($resultArray[0]->id == $userid)
+			{
+				$returnArray['emailChanged'] = 'FALSE';
+				$returnArray['emailExists'] = 'TRUE'; 
+				$returnArray['email'] = $email;
+
+				echo json_encode($returnArray);
+
+			} //End if
+			else
+			{
+				$returnArray['emailChanged'] = 'TRUE';
+				$returnArray['emailExists'] = 'TRUE';
+				$returbArray['email'] = $email;
+
+				echo json_encode($returnArray);
+
+			} //End else
+
+		} //End else
+	} //End if
+	else //If array size is greater than 1, then an error occurred (more than 1 user uses the same email)
+	{
+		// $returnArray['emailChanged'] = 'FALSE';
+		// $returnArray['emailExists'] = 'TRUE';
+
+	} //End else
+
+
+//	echo json_encode("Hi");
+
+} //End CheckUserEmail()
+
+
+//Used by manage-user view, btnUpdateUser.click()
 function UpdateUser()
 {
-	echo json_encode("Hi");
+	$userID = $this->input->post('UserID');
+
+	//Data to be used in the $userData array
+	$fName = $this->input->post('FName');
+	$lName = $this->input->post('LName');
+	$email = $this->input->post('Email');
+
+	$userData = array(
+			"first_name" => $fName,
+			"last_name" => $lName,
+			"email" => $email
+		);
+
+	//ion_auth->update() returns TRUE if successful & FALSE if unsuccessful
+	$updateResult = $this->ion_auth->update($userID, $userData);
+
+	$returnResult = array(
+			'wasSuccess' => $updateResult,
+			'userFeedback' => null
+		);
+
+
+	if($updateResult)
+	{
+		$returnResult['userFeedback'] = "$fName $lName updated successfully";
+	} //End if
+	else
+	{
+		$returnResult['userFeedback'] = "Update of $fName $lName failed";
+	} //End else
+
+	//Return result to AJAX calling method
+	echo json_encode($returnResult);
+
+
 } //End UpdateUser()
 
-//Used by manage-user view
+
+//Used by manage-user view, btnDeleteUser.click() event
 function DeleteUser()
 {
-	echo json_encode("Hi");
+	$userID = $this->input->post('UserID');
+	$fName = $this->input->post('FName');
+	$lName = $this->input->post('LName');
+
+	//ion_auth->delete_user returns TRUE if delete successful & FALSE if unsuccessful
+	$result = $this->ion_auth->delete_user($userID);
+
+	$returnResult = array(
+			'wasSuccess' => $result,
+			'userFeedback' => null
+		);
+
+	if($result)
+	{
+		$returnResult['userFeedback'] = "$fName $lName successfully deleted";
+	} //End if
+	else
+	{
+		$returnResult['userFeedback'] = "$fName $lName was not successfully deleted";
+	} //End else
+
+	//Return result to AJAX function
+	echo json_encode($returnResult);
+
+	//echo json_encode("Hi");
 } //End DeleteUser()
-
-
 
 
 //Used by manage-user view (the "Register" form)
