@@ -973,8 +973,16 @@ class Inventory extends CI_Controller
 
 	public function LoanReturn()
 	{
+		//Loan view
+		$this->load->view('vac-header');
+		$this->load->view('vaccine/loanreimburse');
+		$this->load->view('vac-footer');
+	} //End LoanReturn()
 
 
+
+function GetLoans()
+{
 		//Query to assemble all currently outstanding loans
 		$qry = 
 		"SELECT
@@ -996,13 +1004,8 @@ class Inventory extends CI_Controller
 
 		//Store table data in variable to pass to view
 		$data['tblSummary'] = $this->table->generate($qryResult);
+} //End GetLoans()
 
-
-		//Loan view
-		$this->load->view('vac-header');
-		$this->load->view('vaccine/loanreturn-alt', $data);
-		$this->load->view('vac-footer');
-	} //End LoanReturn()
 
 
 	public function EditTransactions()
