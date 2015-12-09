@@ -979,15 +979,23 @@ class Inventory extends CI_Controller
 		$this->load->view('vac-footer');
 	} //End LoanReturn()
 
-
-
-function GetLoans()
+//Used by the loanreimburse.php view
+function GetOutstandingLoans()
 {
+		//Get the sort criteria
+		//Allowed criteria values:
+		//'none' (default value), borrower', 'vaccineName', 'signer', 'date', 'lot', 'doseQty'
+		$sortCriteria = $this->input->post('SortCriteria');
+		
+
 		//Query to assemble all currently outstanding loans
 		$qry = 
 		"SELECT
-			pr.proprietaryname as 'Proprietary Name',
+			lo.loanid as 'Loan ID',
+	/*		pr.proprietaryname as 'Proprietary Name', */
 			pr.nonproprietaryname as 'Non-Proprietary Name',
+			b.entityname as 'Borrower',
+			lo.signer_name as 'Loan Signer',
 			t.transdate as 'Loan Date',
 			vt.LotNum as 'Lot Number',
 			vt.ExpireDate as 'Expiration Date',
@@ -998,13 +1006,41 @@ function GetLoans()
 			`fda_drug_package` as pa on pr.productid = pa.productid inner join
 			`vaccinetrans` as vt on vt.drugid = pa.drugid inner join 
 			`transaction` as t on t.transid = vt.transid inner join
-			`loanout` as lo on lo.loanid = vt.transid";
+			`loanout` as lo on lo.loanid = vt.transid inner join
+			`borrower` as b on b.borrowerid = lo.borrowerid";
 
 		$qryResult = $this->db->query($qry);
 
+		$resultArray = $qryResult->result();
+
 		//Store table data in variable to pass to view
-		$data['tblSummary'] = $this->table->generate($qryResult);
-} //End GetLoans()
+//		$data['tblSummary'] = $this->table->generate($qryResult);
+
+		//Headings for the data to be returned to AJAX calling function
+		//The headings come from the SQL query results' column headings
+		$header = array(
+			//	'Proprietary Name',
+				'Non-Proprietary Name',
+				'Borrower',
+				'Loan Signer',
+				'Loan Date',
+				'Lot Number',
+				'Expiration Date',
+				'Total Doses'
+			); //Names of database result columns
+		$tableData = $resultArray;
+		$loanCount = count($tableData);
+
+
+		$returnData = array(
+				'headerRow' => $header,
+				'tableData' => $tableData,
+				'numLoans' => $loanCount
+			);
+
+		echo json_encode($returnData);
+
+} //End GetOutstandingLoans()
 
 
 

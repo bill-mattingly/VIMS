@@ -49,6 +49,12 @@
 
 				}
 
+				//DisplayOutstandingLoans is a function from the loanreimbursement.php view
+				if(typeof DisplayOutstandingLoans === "function")
+				{
+					DisplayOutstandingLoans(); //Populates the page with outstanding vaccine loans
+				}
+
 				//Gets id value of the anchor tag which was clicked
 				$("a").click(function(e){
 					window.sessionStorage.setItem("tabId", e.target.id);
