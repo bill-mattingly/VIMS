@@ -995,6 +995,7 @@ function GetOutstandingLoans()
 	/*		pr.proprietaryname as 'Proprietary Name', */
 			pr.nonproprietaryname as 'Non-Proprietary Name',
 			b.entityname as 'Borrower',
+			b.borrowerid as 'Borrower ID',
 			lo.signer_name as 'Loan Signer',
 			t.transdate as 'Loan Date',
 			vt.LotNum as 'Lot Number',

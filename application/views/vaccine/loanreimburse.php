@@ -34,24 +34,60 @@ If vaccine, specify dose amount
 				<button>Submit</button>
 			-->
 
-				<label for='reimburseCash'>Cash Payment:</label>
-				<input id='reimburseCash' type='radio' name='loanReimburseType' value='cash' checked>
+				<div class='row'>
+					<div class='col-md-12'>
+					<input id='reimburseCash' type='radio' name='loanReimburseType' value='cash' checked>
+					<label for='reimburseCash'>Cash Payment:</label>
+					
+					<input id="reimburseVials" type='radio' name='loanReimburseType' value='vials'>
+					<label for='reimburseVials'>Vial Reimbursement:</label><br/>
 
-				<label for='reimburseVials'>Vial Reimbursement:</label>
-				<input id="reimburseVials" type='radio' name='loanReimburseType' value='vials'><br/>
+					<input id="partialPayment" type='checkbox' name='partialPayment'>
+					<label for="partialPayment">Partial Repayment?</label><br/>
+					</div> <!-- /End .col-md-12 -->
+				</div> <!-- /End .row -->
 
-				<label for='reimburseSigner'>Reimbursing Person:</label>
-				<input id='reimburseSigner' type='text' name='reimburseSigner' placeholder='Person Returning Money'><br/>
+				<div class="row">
+					<div class='col-md-6'>
+						<h2>Loan Information</h2>
+						<label>Vaccine:</label>
+						<input id='vacName' type='text' disabled><br/>
 
-				<label id="lblReimburseQty" for="reimbursement">Reimbursement Amount:</label>
-				<input id="reimburseQty" type="text" name='reimbursement' placeholder="Enter Monetary Value"><br/>
+						<label>Lot#:</label>
+						<input id='lotNum' type='text' disabled><br/>
 
+						<label>Expiration:</label>
+						<input id='expireDate' type='text' disabled><br/>
 
+						<label>Quantity:</label>
+						<input id='loanQty' type='text' disabled><br/>
+
+						<label>Loan Date:</label>
+						<input id='loanDate' type='text' disabled><br/>
+
+						<label>Borrower:</label>
+						<input id='borrowerName' type='text' disabled><br/>
+
+						<label>Signer:</label>
+						<input id='loanSigner' type='text' disabled><br/>
+					</div> <!-- /End col-md-6 -->
+
+					<div class='col-md-6'>
+						<h2>Reimbursement Form</h2>
+						<label for='reimburseSigner'>Reimbursing Person:</label>
+						<input id='reimburseSigner' type='text' name='reimburseSigner' placeholder='Person Returning Money'><br/>
+
+						<label id="lblReimburseQty" for="reimbursement">Reimbursement Amount:</label>
+						<input id="reimburseQty" type="text" name='reimbursement' placeholder="Enter Monetary Value"><br/>
+					</div> <!-- /End col-md-6 -->
+				</div> <!-- /End .row -->
 
 			</div> <!-- /End .modal-body -->
 			<div class='modal-footer'>
-				<button id="btnReimburse" type="button" class="btn btn-default" data-dismiss="modal">Submit</button>
-				<button id="btnClose" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<div class='row col-md-12'>
+					<button id="btnReimburse" type="button" class="btn btn-default" data-dismiss="modal">Submit</button>
+					<button id="btnClose" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div> <!-- /End row col-md-12 -->
 			</div> <!-- /End .modal-footer -->
 		</div> <!-- /End .modal-content -->
 	</div> <!-- /End .modal-dialog -->
@@ -106,7 +142,8 @@ function DisplayOutstandingLoans(sortCriteria){
 					//Open row tag for a row object
 					tableData += "<tr>"; 
 					
-					var loanID = null; //assigned within the inner forEach
+					var loanID = null; //assigned within for loop
+					var borrowerID = null; //assigned within for loop
 					var currentLoan = element; //Gets the loan currently being iterated over by the forEach loop
 					
 					var objKeysArray = Object.keys(element); //Array to be iterated over in "for" loop
@@ -119,14 +156,18 @@ function DisplayOutstandingLoans(sortCriteria){
 					{
 						key = objKeysArray[counter];
 
-						if(key != 'Loan ID')
+						if(key != 'Loan ID' && key != 'Borrower ID')
 						{
 							tableData += "<td>" + currentLoan[key] + "</td>";
 						}
-						else
+						else if(key == 'Loan ID')
 						{
 							loanID = currentLoan[key];
-						}
+						} //End else if
+						else if(key == 'Borrower ID')
+						{
+							borrowerID = currentLoan[key];
+						} //End else if
 					} //End for loop
 
 					//Loop through the attributes of that row object
@@ -143,7 +184,7 @@ function DisplayOutstandingLoans(sortCriteria){
 //					}); //End "inner" forEach (accessing a specific row result object's attributes)
 
 					//Add checkbox to final column of row
-					tableData += "<td><input id='checkBoxLoanID" + loanID + "' type='checkbox' value='" + loanID + "' data-loanID='" + loanID + "' data-toggle='modal' data-target='#loanModal'></td>";
+					tableData += "<td><input id='checkBoxLoanID" + loanID + "' type='checkbox' value='" + loanID + "' data-loanID='" + loanID + "' data-borrowerID='" + borrowerID + "' data-toggle='modal' data-target='#loanModal'></td>";
 
 					//Close row tag
 					tableData += "</tr>";
@@ -180,33 +221,108 @@ function DisplayOutstandingLoans(sortCriteria){
 // team_photo.js was adapted from code example: http://getbootstrap.com/javascript/#modals-related-target
 // 12/9/2015
 
-// This script parses several attributes to be used by the modal dialog box with the id photo-modal in team.php
-$('#loanModal').on('show.bs.modal', function (event) {
+// // This script parses several attributes to be used by the modal dialog box with the id photo-modal in team.php
+// $('#loanModal').on('show.bs.modal', function (event) {
   
- // console.log(event);
-  var element = event.relatedTarget;
-  var loanID = $(element).data('loanid');
+// 	//Get loan data to display in the dialog box
 
 
-//  var thumb = $(event.relatedTarget);		// Thumbnail that triggered the modal
-//  var photoSrc = thumb.attr("src");			// Extract image's src attribute
-//  var pieces = photoSrc.split("/");			// Break photo source URL into pieces for parsing
-//  var photoFile = pieces[pieces.length-1];	// Select last index in pieces array for filename
-//  var photoDir = "photos/large/";			// Directory that large versions of photos are stored in
-//  var name = thumb.attr("alt");				// Grab employee's name from image's alt text attribute
+// 	// console.log(event);
+// 	var element = event.relatedTarget;
+// 	var loanID = $(element).data('loanid');
 
-//  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-//  var modal = $(this);
-//  modal.find('#modal-employeeName').text(name);					//Place employee name in title portion of modal
-//  modal.find('#modal-photo').attr("src", photoDir + photoFile);	//Set image source to large version of employee photo
+
+
+
+// //Begin original code
+
+// //  var thumb = $(event.relatedTarget);		// Thumbnail that triggered the modal
+// //  var photoSrc = thumb.attr("src");			// Extract image's src attribute
+// //  var pieces = photoSrc.split("/");			// Break photo source URL into pieces for parsing
+// //  var photoFile = pieces[pieces.length-1];	// Select last index in pieces array for filename
+// //  var photoDir = "photos/large/";			// Directory that large versions of photos are stored in
+// //  var name = thumb.attr("alt");				// Grab employee's name from image's alt text attribute
+
+// //  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+// //  var modal = $(this);
+// //  modal.find('#modal-employeeName').text(name);					//Place employee name in title portion of modal
+// //  modal.find('#modal-photo').attr("src", photoDir + photoFile);	//Set image source to large version of employee photo
+
+// //End original code
+
+
+// }); //End #loanModal.on('show.bs.modal')
+
+// //Get selected row to store all loan data in session variables (for populating the modal dialog with loan details)
+// $("input[type='checkbox']").on('mousedown', function(){
+	
+// 	//Get selected row 
+// 	var selectedRow = $(this).closest('tr');
+
+
+// 	//Get the selected row's loan information
+// 	var loanid = $("input[type='checkbox']:checked").data('loanid');
+// 	var borrowerid = $("input[type='checkbox']:checked").data('borrowerid');
+
+// 	var vacName = selectedRow[0].innerHtml;
+// 	var borrowerName = selectedRow[1].innerHtml;
+// 	var loanSigner = selectedRow[2].innerHtml;
+// 	var loanDate = selectedRow[3].innerHtml;
+
+// 	var lotNum = selectedRow[4].innerHtml;
+// 	var expireDate = selectedRow[5].innerHtml;
+// 	var loanQty = selectedRow[6].innerHtml;
+
+// 	//Store loan information in a session variable (to be accessed by the modal dialog)
+// 	sessionStorage.setItem('loanID', loanID);
+// 	sessionStorage.setItem('borrowerID', borrowerID);
+// 	sessionStorage.setItem('vacName', vacName);
+// 	sessionStorage.setItem('borrowerName', borrowerName);
+
+// 	sessionStorage.setItem('loanSigner', loanSigner);
+// 	sessionStorage.setItem('loanDate', loanDate);
+// 	sessionStorage.setItem('lotNum', lotNum);
+// 	sessionStorage.setItem('expireDate', expireDate);
+// 	sessionsStorage.setItem('loanQty', loanQty);
+
+// }); //End $(#outstandingLoansTbl tr).click()
+
+//Populates modal dialog with loan information from sessionStorage variable
+$('#loanModal').on('show.bs.modal', function(event){
+	
+	var checkBox = event.relatedTarget;
+
+	var count = 0;
+
+	var selectedRow = $(checkBox).closest('tr');
+
+	var loanDataArray = [];
+
+	$(selectedRow).find('td').each(function(){
+		var cell = $(this).html();
+		console.log(cell);
+		loanDataArray.push(cell);
+	}); //End .each()
+
+	//Populate loan information modal text boxes
+	$("#vacName").val(loanDataArray[0]);
+	$("#lotNum").val(loanDataArray[4]);
+	$("#expireDate").val(loanDataArray[5]);
+
+	$("#loanQty").val(loanDataArray[6]);
+	$("#loanDate").val(loanDataArray[3]);
+	$("#borrowerName").val(loanDataArray[1]);
+	$("#loanSigner").val(loanDataArray[2]);
+
+
 }); //End #loanModal.on('show.bs.modal')
 
+//Unchecks the selected loan when the modal dialog box is closed
 $('#loanModal').on('hide.bs.modal', function (event){
 	$("input[type='checkbox']:checked").prop('checked', false);
-
 }); //End #loanModal.on('hide.bs.modal')
 
-
+//Controls events for the radio buttons on the modal dialog box
 $("input[type='radio']").click(function(){
 	console.log("Radio button clicked!");
 
@@ -226,10 +342,12 @@ $("input[type='radio']").click(function(){
 
 }); //End input[type='radio'].click()
 
+//Controls the "Submit" button on the modal dialog box
 $("#btnReimburse").click(function(){
 	//console.log("Submit btn clicked");
 }); //End #btnReimburse.click()
 
+//Controls the "Cancel" button on the modal dialog box
 $("#btnClose").click(function(){
 
 }); //End #btnClose.click()
