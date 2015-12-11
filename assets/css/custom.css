@@ -11,6 +11,12 @@ h2{
 	font-size: 24px;
 }
 
+/*Controls the display of the #reimburseDosesFields div on the loanreimburse.php modal box (when a loan from the table is selected) */
+#reimburseDosesFields
+{
+	display: none;
+} 
+
 /*Elements located in the updatepriceandcost.php view*/
 #updateMsg, #nameSearchMsg, #barcodeSearchMsg
 {

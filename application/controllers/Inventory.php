@@ -979,72 +979,6 @@ class Inventory extends CI_Controller
 		$this->load->view('vac-footer');
 	} //End LoanReturn()
 
-//Used by the loanreimburse.php view
-function GetOutstandingLoans()
-{
-		//Get the sort criteria
-		//Allowed criteria values:
-		//'none' (default value), borrower', 'vaccineName', 'signer', 'date', 'lot', 'doseQty'
-		$sortCriteria = $this->input->post('SortCriteria');
-		
-
-		//Query to assemble all currently outstanding loans
-		$qry = 
-		"SELECT
-			lo.loanid as 'Loan ID',
-	/*		pr.proprietaryname as 'Proprietary Name', */
-			pr.nonproprietaryname as 'Non-Proprietary Name',
-			b.entityname as 'Borrower',
-			b.borrowerid as 'Borrower ID',
-			lo.signer_name as 'Loan Signer',
-			t.transdate as 'Loan Date',
-			vt.LotNum as 'Lot Number',
-			vt.ExpireDate as 'Expiration Date',
-			lo.Total_Doses as 'Total Doses'
-			/* (lo.doses_per_package * lo.packageqty) as 'Total Doses Loaned' */
-		FROM
-			`fda_product` as pr inner join 
-			`fda_drug_package` as pa on pr.productid = pa.productid inner join
-			`vaccinetrans` as vt on vt.drugid = pa.drugid inner join 
-			`transaction` as t on t.transid = vt.transid inner join
-			`loanout` as lo on lo.loanid = vt.transid inner join
-			`borrower` as b on b.borrowerid = lo.borrowerid";
-
-		$qryResult = $this->db->query($qry);
-
-		$resultArray = $qryResult->result();
-
-		//Store table data in variable to pass to view
-//		$data['tblSummary'] = $this->table->generate($qryResult);
-
-		//Headings for the data to be returned to AJAX calling function
-		//The headings come from the SQL query results' column headings
-		$header = array(
-			//	'Proprietary Name',
-				'Non-Proprietary Name',
-				'Borrower',
-				'Loan Signer',
-				'Loan Date',
-				'Lot Number',
-				'Expiration Date',
-				'Total Doses'
-			); //Names of database result columns
-		$tableData = $resultArray;
-		$loanCount = count($tableData);
-
-
-		$returnData = array(
-				'headerRow' => $header,
-				'tableData' => $tableData,
-				'numLoans' => $loanCount
-			);
-
-		echo json_encode($returnData);
-
-} //End GetOutstandingLoans()
-
-
-
 	public function EditTransactions()
 	{
 		// $reports = new Reports();
@@ -2024,7 +1958,7 @@ function SearchProprietaryName()
 
 	//Search database   //, COUNT(PR.PROPRIETARYNAME) AS 'Count'
 	$sql = "SELECT PR.PROPRIETARYNAME AS 'Name'
-			FROM `FDA_DRUG_PACKAGE` PA INNER JOIN `FDA_PRODUCT` PR ON PA.PRODUCTID = PR.PRODUCTID
+			FROM `fda_drug_package` PA INNER JOIN `fda_product` PR ON PA.PRODUCTID = PR.PRODUCTID
 			WHERE PR.PROPRIETARYNAME LIKE '$vac%'
 			GROUP BY PR.PROPRIETARYNAME
 			ORDER BY PR.PROPRIETARYNAME ASC";
@@ -2100,7 +2034,7 @@ function SearchBarcode()
 
 	//, COUNT(PR.PROPRIETARYNAME) as Count
 	$sql = "SELECT PR.PROPRIETARYNAME as Name
-			FROM `FDA_DRUG_PACKAGE` PA INNER JOIN `FDA_PRODUCT` PR ON PA.PRODUCTID = PR.PRODUCTID
+			FROM `fda_drug_package` PA INNER JOIN `fda_product` PR ON PA.PRODUCTID = PR.PRODUCTID
 			WHERE PA.".$field." = '$ndc'
 			GROUP BY PR.PROPRIETARYNAME
 			ORDER BY PR.PROPRIETARYNAME ASC";
@@ -2144,7 +2078,7 @@ function GetVacCostAndPrice()
 
 	//Search database
 	$sql = "SELECT PR.PROPRIETARYNAME as 'Name', PA.DRUG_COST as 'Cost', PA.TRVL_CHRG as 'Trvl_Chrg', PA.Refugee_Chrg as 'Refugee_Chrg'
-			FROM `FDA_DRUG_PACKAGE` PA INNER JOIN `FDA_PRODUCT` PR ON PA.PRODUCTID = PR.PRODUCTID
+			FROM `fda_drug_package` PA INNER JOIN `fda_product` PR ON PA.PRODUCTID = PR.PRODUCTID
 			WHERE PR.PROPRIETARYNAME = '$vac'
 			LIMIT 1";
 
@@ -2174,7 +2108,7 @@ function ChangePriceCost()
 			WHERE PRODUCTID IN
 				(
 				 SELECT PRODUCTID
-				 FROM `FDA_PRODUCT`
+				 FROM `fda_product`
 				 WHERE PROPRIETARYNAME LIKE '%".$vacName."%'
 				)
 			";
@@ -2578,7 +2512,7 @@ function GetBorrower()
 	$id = $this->input->post('BorrowerID');
 
 	$sql = "SELECT ENTITYNAME as 'Name', CONTACT_NAME as 'Contact', PHONE as 'Phone', EMAIL as 'Email'
-			FROM BORROWER
+			FROM borrower
 			WHERE BORROWERID = $id";
 
 	$result = $this->db->query($sql);
@@ -2691,7 +2625,7 @@ function EditSingleTransaction()
 	//Update the record where TransID == $aTransID in the table based on $transType
 	//Update the Lot Number (VaccineTrans table), Expiration Date (VaccineTrans table), and Transaction Qty (administer, order_invoice, loanout, or loanreturn table)
 	//Update Lot & Expiration Date
-	$sql = "UPDATE VACCINETRANS
+	$sql = "UPDATE vaccinetrans
 			SET LOTNUM = '$aLotNum', ExpireDate = '$anExpirationDate'
 			WHERE TRANSID = $aTransID";
 
@@ -2702,26 +2636,26 @@ function EditSingleTransaction()
 	switch($transType)
 	{
 		case "Invoice":
-			$sql = "UPDATE ORDER_INVOICE
+			$sql = "UPDATE order_invoice
 					SET PACKAGEQTY = $packageQty, DOSES_PER_PACKAGE = $dosesPerPackage
 					WHERE INVOICEID = $aTransID";
 			break;
 
 		case "Administer":
-			$sql = "UPDATE ADMINISTER
+			$sql = "UPDATE administer
 					SET DOSES_GIVEN = $aTransQty
 					WHERE ADMINISTERID = $aTransID";
 			break;
 
 		case "Loan Out":
-			$sql = "UPDATE LOANOUT
+			$sql = "UPDATE loanout
 					SET TOTAL_DOSES = $aTransQty
 					WHERE LOANID = $aTransID";
 			break;
 
 		case "Loan Return":
-			$sql = "UPDATE LOANNRETURN
-					SET TOTAL_DOSES = $aTransQty
+			$sql = "UPDATE loanreturn
+					SET TOTAL_DOSES = $aTransQty /*Update this b/c Total_Doses column no longer exists*/
 					WHERE RETURNID = $aTransID";
 			break;
 
@@ -2931,6 +2865,85 @@ function GetSpecificUser()
 
 } //End GetSpecificUser()
 
+
+//Used by the loanreimburse.php view
+function GetOutstandingLoans()
+{
+		//Get the sort criteria
+		//Allowed criteria values:
+		//'none' (default value), borrower', 'vaccineName', 'signer', 'date', 'lot', 'doseQty'
+		$sortCriteria = $this->input->post('SortCriteria');
+		
+
+		//Query to assemble all currently outstanding loans
+		$qry = 
+		"SELECT
+			lo.loanid as 'Loan ID',
+			vt.drugid as 'Drug ID',
+	/*		pr.proprietaryname as 'Proprietary Name', */
+			pr.nonproprietaryname as 'Non-Proprietary Name',
+			b.entityname as 'Borrower',
+			b.borrowerid as 'Borrower ID',
+			lo.signer_name as 'Loan Signer',
+			t.transdate as 'Loan Date',
+			vt.LotNum as 'Lot Number',
+			vt.ExpireDate as 'Expiration Date',
+			lo.Total_Doses as 'Total Doses'
+			/* (lo.doses_per_package * lo.packageqty) as 'Total Doses Loaned' */
+		FROM
+			`fda_product` as pr inner join 
+			`fda_drug_package` as pa on pr.productid = pa.productid inner join
+			`vaccinetrans` as vt on vt.drugid = pa.drugid inner join 
+			`generic_transaction` as t on t.transid = vt.transid inner join
+			`loanout` as lo on lo.loanid = vt.transid inner join
+			`borrower` as b on b.borrowerid = lo.borrowerid";
+
+		$qryResult = $this->db->query($qry);
+
+		$resultArray = $qryResult->result();
+
+		//Store table data in variable to pass to view
+//		$data['tblSummary'] = $this->table->generate($qryResult);
+
+		//Headings for the data to be returned to AJAX calling function
+		//The headings come from the SQL query results' column headings
+		$header = array(
+			//	'Proprietary Name',
+				'Non-Proprietary Name',
+				'Borrower',
+				'Loan Signer',
+				'Loan Date',
+				'Lot Number',
+				'Expiration Date',
+				'Total Doses'
+			); //Names of database result columns
+		$tableData = $resultArray;
+		$loanCount = count($tableData);
+
+
+		$returnData = array(
+				'headerRow' => $header,
+				'tableData' => $tableData,
+				'numLoans' => $loanCount
+			);
+
+		echo json_encode($returnData);
+
+} //End GetOutstandingLoans()
+
+
+function LoanReimbursement()
+{
+	//Get reimbursement type (could be either "cash" or "doses")
+	$type = $this->input->post('LoanID');
+
+	$userID = $this->ion_auth->user();
+
+	$resultArray = array('Type' => $type, 'UserID' => $userID);
+
+	echo json_encode($resultArray);
+
+} //End LoanReimbursement()
 
 
 /* End AJAX Functions */

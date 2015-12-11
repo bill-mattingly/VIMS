@@ -43,7 +43,7 @@ If vaccine, specify dose amount
 					<label for='reimburseVials'>Vial Reimbursement:</label><br/>
 
 					<input id="partialPayment" type='checkbox' name='partialPayment'>
-					<label for="partialPayment">Partial Repayment?</label><br/>
+					<label for="partialPayment">Is Partial Repayment?</label><br/>
 					</div> <!-- /End .col-md-12 -->
 				</div> <!-- /End .row -->
 
@@ -77,8 +77,28 @@ If vaccine, specify dose amount
 						<label for='reimburseSigner'>Reimbursing Person:</label>
 						<input id='reimburseSigner' type='text' name='reimburseSigner' placeholder='Person Returning Money'><br/>
 
+<!--
 						<label id="lblReimburseQty" for="reimbursement">Reimbursement Amount:</label>
 						<input id="reimburseQty" type="text" name='reimbursement' placeholder="Enter Monetary Value"><br/>
+-->
+
+						<div id='reimburseCashFields'>
+							<label id="lblReimburseAmount" for="reimburseAmount">Reimburse Amount:</label>
+							<input id="reimburseAmount" type="text" name='reimburseAmount' placeholder="Enter Monetary Value"><br/>
+						</div> <!-- /End #reimburseCash -->
+
+						<div id='reimburseDosesFields'>
+							<label id="lblLotNum" for="lotNum">Lot Number:</label>
+							<input id="lotNum" type="text" name='lotNum' placeholder="Enter Monetary Value"><br/>
+
+							<label id="lblExpireDate" for="expireDate">Reimbursement Amount:</label>
+							<input id="expireDate" type="text" name='expireDate' placeholder="Enter Monetary Value"><br/>
+
+							<label id="lblReimburseDoseQty" for="reimburseDoseQty">Reimbursement Amount:</label>
+							<input id="reimburseDoseQty" type="text" name='reimburseDoseQty' placeholder="Enter Monetary Value"><br/>
+
+						</div> <!-- /End #reimburseDoses -->
+
 					</div> <!-- /End col-md-6 -->
 				</div> <!-- /End .row -->
 
@@ -126,7 +146,7 @@ function DisplayOutstandingLoans(sortCriteria){
 			}); //End forEach
 
 			//Add a heading for a "checkbox" column at the end of the header row to allow users to select loans for review
-			header += "<th>Select Loan&lpar;s&rpar;</th></tr>";
+			header += "<th>Select a Loan</th></tr>";
 
 			//Add header row to Outstanding Loans Table
 			$("#outstandingLoansTbl").append(header);
@@ -144,6 +164,7 @@ function DisplayOutstandingLoans(sortCriteria){
 					
 					var loanID = null; //assigned within for loop
 					var borrowerID = null; //assigned within for loop
+					var drugID = null; //assigned within for loop
 					var currentLoan = element; //Gets the loan currently being iterated over by the forEach loop
 					
 					var objKeysArray = Object.keys(element); //Array to be iterated over in "for" loop
@@ -156,18 +177,21 @@ function DisplayOutstandingLoans(sortCriteria){
 					{
 						key = objKeysArray[counter];
 
-						if(key != 'Loan ID' && key != 'Borrower ID')
+						switch(key)
 						{
-							tableData += "<td>" + currentLoan[key] + "</td>";
-						}
-						else if(key == 'Loan ID')
-						{
-							loanID = currentLoan[key];
-						} //End else if
-						else if(key == 'Borrower ID')
-						{
-							borrowerID = currentLoan[key];
-						} //End else if
+							case "Loan ID":
+								loanID = currentLoan[key];
+								break;
+							case "Borrower ID":
+								borrowerID = currentLoan[key];
+								break;
+							case "Drug ID":
+								drugID = currentLoan[key];
+								break;
+							default:
+								tableData += "<td>" + currentLoan[key] + "</td>";
+								break;
+						} //End switch
 					} //End for loop
 
 					//Loop through the attributes of that row object
@@ -184,7 +208,7 @@ function DisplayOutstandingLoans(sortCriteria){
 //					}); //End "inner" forEach (accessing a specific row result object's attributes)
 
 					//Add checkbox to final column of row
-					tableData += "<td><input id='checkBoxLoanID" + loanID + "' type='checkbox' value='" + loanID + "' data-loanID='" + loanID + "' data-borrowerID='" + borrowerID + "' data-toggle='modal' data-target='#loanModal'></td>";
+					tableData += "<td><input id='checkBoxLoanID" + loanID + "' type='checkbox' value='" + loanID + "' data-loanID='" + loanID + "' data-borrowerID='" + borrowerID + "' data-drugID='" + drugID + "' data-toggle='modal' data-target='#loanModal'></td>";
 
 					//Close row tag
 					tableData += "</tr>";
@@ -324,20 +348,21 @@ $('#loanModal').on('hide.bs.modal', function (event){
 
 //Controls events for the radio buttons on the modal dialog box
 $("input[type='radio']").click(function(){
-	console.log("Radio button clicked!");
+	//console.log("Radio button clicked!");
 
 	var selectedRdo = $(this).val();
 
-	if(selectedRdo == 'cash')
+	if(selectedRdo == 'cash') //If "cash" is selected, change "signer" textbox, hide the "dosesFields" div content, show the "cashFields" div content
 	{
-		$("#reimburseQty").attr("placeholder", 'Enter Monetary Value');
 		$("#reimburseSigner").attr('placeholder', 'Person Returning Money');	
+		$("#reimburseDosesFields").css('display', 'none');
+		$("#reimburseCashFields").css('display', 'block');
 	} //End if
-	else
+	else //If "cash" is not selected, change placeholder text in "signer" textbox, hide the "cashFields" div content, and show the "dosesFields" div content
 	{
-		$("#reimburseQty").attr('placeholder', 'Enter Vial Quantity');
 		$("#reimburseSigner").attr('placeholder', 'Person Returning Vials');
-
+		$('#reimburseCashFields').css('display', 'none');
+		$("#reimburseDosesFields").css('display', 'block');
 	} //End else
 
 }); //End input[type='radio'].click()
@@ -345,6 +370,57 @@ $("input[type='radio']").click(function(){
 //Controls the "Submit" button on the modal dialog box
 $("#btnReimburse").click(function(){
 	//console.log("Submit btn clicked");
+
+	//Get information needed for loans (data not coming from the modal form)
+	var loanID = $("input[type='checkbox']:checked").data('loanid');
+	var borrowerID = $("input[type='checkbox']:checked").data('borrowerid');
+	var drugID = $("input[type='checkbox']:checked").data('drugid');
+
+	var reimburseType = $("input[type='radio']:checked").val();
+	var isPartialReimbursement = $("#partialPayment").is(":checked");
+
+	var reimburseSigner = $("#reimburseSigner").val();
+
+	//Declare/initialize variables for modal form
+	//Cash modal form
+	var reimburseAmount = null;
+
+	//Doses modal form
+	var lotNum = null;
+	var expireDate = null;
+	var doseQty = null;
+
+
+
+	//Get modal form data
+	switch(reimburseType)
+	{
+		case "cash":
+			reimburseAmount = $("#reimburseAmount").val();
+			break;
+		case "doses":
+			lotNum = $("#lotNum").val();
+			expireDate = $("#expireDate").val();
+			doseQty = $("#reimburseDoseQty").val();
+			break;
+		default:
+			console.log("An unavailable option was selected");
+			break;
+	} //End switch
+
+	$.ajax({
+		url: "<?php echo site_url('Inventory/LoanReimbursement'); ?>",
+		method: "POST",
+		data: {'LoanID': loanID, 'BorrowerID': borrowerID, 'DrugID': drugID},
+		dataType: "JSON",
+		success: function(result){
+			console.log(result + ". Reimburse success");
+		}, //End success function
+		error: function(errorResult){
+			console.log('Reimbursement error occurred');
+		} //End error function
+	}); //End $.ajax()
+
 }); //End #btnReimburse.click()
 
 //Controls the "Cancel" button on the modal dialog box
