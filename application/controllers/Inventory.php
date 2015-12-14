@@ -2934,14 +2934,97 @@ function GetOutstandingLoans()
 
 function LoanReimbursement()
 {
+	//List of all data values passed from the client machine in this AJAX
+	//request:
+		// 'ReimburseType': reimburseType, 
+		// 'IsPartialReimbursement': isPartialReimbursement, 
+		// 'LoanID': loanID,
+		// 'ReimburseSigner': reimburseSigner,
+		
+		// 'DrugID': drugID,
+		// 'ReimburseAmount': reimburseAmount,
+		// 'LotNum': lotNum,
+		// 'ExpireDate': expireDate,
+		// 'DoseQty': doseQty
+	//End list of data values
+
+	//Get data from AJAX send request
 	//Get reimbursement type (could be either "cash" or "doses")
-	$type = $this->input->post('LoanID');
+	$typeName = $this->input->post('ReimburseType');
+	$isPartialReimbursement = $this->input->post('IsPartialReimbursement');
+	$loanID = $this->input->post('LoanID');
+	$reimburseSigner = $this->input->post('ReimburseSigner');
 
-	$userID = $this->ion_auth->user();
 
-	$resultArray = array('Type' => $type, 'UserID' => $userID);
 
-	echo json_encode($resultArray);
+	
+	
+
+	//Timestamp information
+	date_default_timezone_set('UTC');
+	$transTimestamp = date('Y-m-d H:i:s'); //time();
+
+	//Employee conducting the transaction
+	$userID = $this->session->userdata('user_id'); //Pulled this from ion_auth_model.php's "user()" function
+
+	$sqlGenericTransaction = "INSERT INTO generic_transaction (TransDate, EMPLOYEE_ID)
+							  VALUES ('$transTimestamp', $userID)";
+
+	//Add new generic transaction
+	$this->db->query($sqlGenericTransaction);
+
+
+	//Create query to get the transID of the newly added transaction
+	$sqlTransID = "SELECT MAX(TransID) as MaxTransID
+				   FROM generic_transaction";
+
+	//Get transaction's 'TransID' from query result to insert into loanreturn table
+	$transID = $this->db->query($sqlTransID);
+	$transID = $transID->result(); //Process query result object into an array of objects
+	$transID = $transID[0]->MaxTransID; //Store the first array index's value (the max value)
+	// echo json_encode($transID);
+
+	// break;
+
+	//Query to insert transaction into loanreturn table
+	$sqlLoanReturn = "INSERT INTO loanreturn (RETURNID, LOANID, RETURNER_NAME, IS_PARTIAL_RETURN)
+					  VALUES ($transID, $loanID, '$reimburseSigner', $isPartialReimbursement)";
+
+	//Insert loanreturn transaction
+	$this->db->query($sqlLoanReturn);
+
+
+	//Query to insert the type of return transaction ('cash' or 'doses')
+	$sqlType = null; //Assigned in switch
+
+	switch($typeName)
+	{
+		case 'cash': //If cash, create query to enter cash reimbursement
+			$amount = $this->input->post('ReimburseAmount');
+
+			$sqlType = "INSERT INTO cash_return_type (RETURN_ID, AMOUNT)
+						VALUES ($transID, $amount)";
+			break;
+		case 'doses': //If doses, create query to enter dose reimbursement
+			$sqlType = "INSERT INTO dose_return_type (RETURN_ID, DRUGID, LOTNUM, EXPIREDATE, DOSE_QTY)
+						VALUES ($transID, $drugID, $lotNum, $expireDate, $doseQty)";
+			break;
+		default:
+			//An error occurred
+			http_response_code(500);
+			break;
+	}
+
+	//Insert return type transaction
+	$this->db->query($sqlType);
+	
+
+
+	// $resultArray = array('Type' => $type, 'UserID' => $userID);
+
+	// echo json_encode($resultArray);
+
+	echo json_encode("Return Success!");
 
 } //End LoanReimbursement()
 

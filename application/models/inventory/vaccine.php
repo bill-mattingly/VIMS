@@ -409,30 +409,30 @@ class Vaccine extends CI_Model
 		return $transData;
 	} //End LoanOut
 
-	//Occurs when a medical group returns vaccine to the clinic to return borrowed vaccine. Increases vaccine inventory
-	public function LoanReturn($aDrugID, $aBorrowerID)
-	{
-		//Insert into Transaction & VaccineTrans
-		$transData = $this->TransVacTransInsert($aDrugID);
+	// //Occurs when a medical group returns vaccine to the clinic to return borrowed vaccine. Increases vaccine inventory
+	// public function LoanReturn($aDrugID, $aBorrowerID)
+	// {
+	// 	//Insert into Transaction & VaccineTrans
+	// 	$transData = $this->TransVacTransInsert($aDrugID);
 
-		//Insert into LoanReturn
-		$loanReturn = array(
-			"ReturnID" => $transData['TransID'],
-			"BorrowerID" => $aBorrowerID,
-			"PackageQty" => $this->session->PackageQty,
-			"Doses_Per_Package" => $this->session->DosesPerPackage
-		);
+	// 	//Insert into LoanReturn
+	// 	$loanReturn = array(
+	// 		"ReturnID" => $transData['TransID'],
+	// 		"BorrowerID" => $aBorrowerID,
+	// 		"PackageQty" => $this->session->PackageQty,
+	// 		"Doses_Per_Package" => $this->session->DosesPerPackage
+	// 	);
 
-		$this->db->insert('loanreturn', $loanReturn);
+	// 	$this->db->insert('loanreturn', $loanReturn);
 
-		//Transaction report
-		$tblSummary = $this->GetTransaction($transData['TransID'], 'loanreturn', FALSE);
-		$transData['tblSummary'] = $tblSummary;
+	// 	//Transaction report
+	// 	$tblSummary = $this->GetTransaction($transData['TransID'], 'loanreturn', FALSE);
+	// 	$transData['tblSummary'] = $tblSummary;
 
-		//Return $transData array
-		return $transData;
+	// 	//Return $transData array
+	// 	return $transData;
 
-	} //End LoanReturn
+	// } //End LoanReturn
 
 	public function GetTransaction($aTransID, $transType, $resultAsArray)
 	{

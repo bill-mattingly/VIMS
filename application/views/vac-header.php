@@ -230,16 +230,16 @@
 											<?php echo anchor('Inventory/Reports', 'Reports', array('data-navlink' => 'reports', 'class' => 'navlink')); ?>
 										</li>
 										<li>
-											<?php echo anchor("Inventory/LoanReturn", "Review Loans"); //, array('id'=>'ScanLoanReturn', 'data-navlink' => 'loanreturn', 'class' => 'navlink')); ?>
+											<?php echo anchor("Inventory/LoanReturn", "Loan Reimbursement"); //, array('id'=>'ScanLoanReturn', 'data-navlink' => 'loanreturn', 'class' => 'navlink')); ?>
 										</li>
 										<li>
-											<?php echo anchor('Inventory/UpdatePriceAndCost', 'Update Prices/Costs', array('data-navlink' => 'priceandcost', 'class' => 'navlink')); ?>
+											<?php echo anchor('Inventory/EditTransactions', 'Modify Transaction'); ?>
 										</li>
 										<li>
-											<?php echo anchor('Inventory/EditTransactions', 'Modify A Transaction'); ?>
+											<?php echo anchor('Inventory/UpdatePriceAndCost', 'Change Prices', array('data-navlink' => 'priceandcost', 'class' => 'navlink')); ?>											
 										</li>
 										<li>
-											<?php echo anchor('Inventory/ManageUsers', 'Manage/Register Users'); ?>
+											<?php echo anchor('Inventory/ManageUsers', 'Manage Users'); ?>
 										</li>
 									</ul>
 								</li>

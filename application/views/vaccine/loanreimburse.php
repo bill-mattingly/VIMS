@@ -91,11 +91,11 @@ If vaccine, specify dose amount
 							<label id="lblLotNum" for="lotNum">Lot Number:</label>
 							<input id="lotNum" type="text" name='lotNum' placeholder="Enter Monetary Value"><br/>
 
-							<label id="lblExpireDate" for="expireDate">Reimbursement Amount:</label>
-							<input id="expireDate" type="text" name='expireDate' placeholder="Enter Monetary Value"><br/>
+							<label id="lblExpireDate" for="expireDate">Expire Date:</label>
+							<input id="expireDate" type="text" name='expireDate' placeholder="Expiration Date"><br/>
 
-							<label id="lblReimburseDoseQty" for="reimburseDoseQty">Reimbursement Amount:</label>
-							<input id="reimburseDoseQty" type="text" name='reimburseDoseQty' placeholder="Enter Monetary Value"><br/>
+							<label id="lblReimburseDoseQty" for="reimburseDoseQty">Dose Quantity:</label>
+							<input id="reimburseDoseQty" type="text" name='reimburseDoseQty' placeholder="Dose Quantity"><br/>
 
 						</div> <!-- /End #reimburseDoses -->
 
@@ -373,7 +373,7 @@ $("#btnReimburse").click(function(){
 
 	//Get information needed for loans (data not coming from the modal form)
 	var loanID = $("input[type='checkbox']:checked").data('loanid');
-	var borrowerID = $("input[type='checkbox']:checked").data('borrowerid');
+//	var borrowerID = $("input[type='checkbox']:checked").data('borrowerid');
 	var drugID = $("input[type='checkbox']:checked").data('drugid');
 
 	var reimburseType = $("input[type='radio']:checked").val();
@@ -408,13 +408,31 @@ $("#btnReimburse").click(function(){
 			break;
 	} //End switch
 
+
 	$.ajax({
 		url: "<?php echo site_url('Inventory/LoanReimbursement'); ?>",
 		method: "POST",
-		data: {'LoanID': loanID, 'BorrowerID': borrowerID, 'DrugID': drugID},
+		data: {'ReimburseType': reimburseType, 
+			   'IsPartialReimbursement': isPartialReimbursement, 
+			   'LoanID': loanID, 
+/*			   'BorrowerID': borrowerID, */
+			   'DrugID': drugID,
+			   'ReimburseAmount': reimburseAmount,
+			   'ReimburseSigner': reimburseSigner,
+			   'LotNum': lotNum,
+			   'ExpireDate': expireDate,
+			   'DoseQty': doseQty
+			},
 		dataType: "JSON",
 		success: function(result){
 			console.log(result + ". Reimburse success");
+
+			//Provide user feedback
+
+
+			//Refresh list of loans in the table
+		//	DisplayOutstandingLoans();
+
 		}, //End success function
 		error: function(errorResult){
 			console.log('Reimbursement error occurred');

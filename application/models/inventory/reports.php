@@ -79,7 +79,8 @@ class Reports extends CI_Model
 					vt.DrugId as DrugId,
 					vt.LotNum as LotNum,
 					vt.ExpireDate,
-					Sum(lr.total_doses) as LoanReturn 
+					'N/A' as LoanReturn
+					/*Sum(lr.total_doses) as LoanReturn  */
 				FROM 
 					`vaccinetrans` vt inner join 
 					`loanreturn` lr on vt.TransId = lr.ReturnId
