@@ -3,6 +3,38 @@ body{
 	text-align: center;
 }
 
+/*Controls display of modal dialog box (modals currently used on loanreimburse.php view) */
+body .modal{
+	width: 70% !important;
+
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/*Controls initial display of "<select>" element on loanreimburse.php view*/
+#filterCategoryOptions{
+	display: none;
+
+	margin-left: auto;
+	margin-right: auto;
+
+	margin-top: 10px;
+	margin-bottom: 15px;
+
+	width: 150px;
+
+}
+
+/*Controls initial display of <label> tag for '#filterCategoryOptions' select element on loanreimburse.php view*/
+#filterOptionsLbl{
+	display: none;
+}
+
+/*Controls spacing between radio options on loanreimburse.php view*/
+input.filterLoanOptions{
+	margin-right: 15px;
+}
+
 h1{
 	text-align: center;
 }

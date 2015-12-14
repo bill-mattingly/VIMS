@@ -1,9 +1,44 @@
-<div class='row col-md-12'>
+<div class='row'>
+	<div class='col-md-12'>
 
 	<h1>Outstanding Loans</h1>
 
 	<!-- Used to provide feedback to user -->
 	<p id='userMsg'></p>
+
+	<div id="filterLoans">
+		<h2>Loan Sort Options</h2>
+		<label for='filterAllLoans'>All:</label>
+		<input id='filterAllLoans' class='filterLoanOptions' type='radio' name='loanFilter' value='all' checked>
+		
+		<label for='filterVacName'>By Vaccine Name:</label>
+		<input id='filterVacName' class='filterLoanOptions' type='radio' name='loanFilter' value='vacName'>
+		
+		<label for='filterBorrower'>By Borrower:</label>
+		<input id='filterBorrower' class='filterLoanOptions' type='radio' name='loanFilter' value='borrower'>
+		
+		<label for='filterSigner'>By Signer:</label>
+		<input id='filterSigner' class='filterLoanOptions' type='radio' name='loanFilter' value='signer'>
+		
+		<label for='filterLoanDate'>By Loan Date:</label>
+		<input id='filterLoanDate' class='filterLoanOptions' type='radio' name='loanFilter' value='loanDate'>
+		
+		<label for='filterLotNum'>By Lot Number:</label>
+		<input id='filterLotNum' class='filterLoanOptions' type='radio' name='loanFilter' value='lotNum'>
+		
+		<label for='filterExpireDate'>By Expiration Date:</label>
+		<input id='filterExpireDate' class='filterLoanOptions' type='radio' name='loanFilter' value='expireDate'>
+		
+		<label for='filterLoanedDoses'>By Loaned Dose Quantity:</label>
+		<input id='filterLoanedDoses' class='filterLoanOptions' type='radio' name='loanFilter' value='doses'>
+		<br/>
+
+		<label id='filterOptionsLbl' for='filterCategoryOptions'>Filter Options:</label>
+		<select id='filterCategoryOptions'>
+			<option value='all' selected>Select Filter</option>
+		</select> <!--Populated based on the selected radio button-->
+
+	</div> <!-- /End #filterLoans -->
 
 	<!-- Table listing loans -->
 	<table id='outstandingLoansTbl' class='table table-bordered table-striped table-hover'>
@@ -36,11 +71,11 @@ If vaccine, specify dose amount
 
 				<div class='row'>
 					<div class='col-md-12'>
-					<input id='reimburseCash' type='radio' name='loanReimburseType' value='cash' checked>
-					<label for='reimburseCash'>Cash Payment:</label>
+					<input id='rdoReimburseCash' type='radio' name='loanReimburseType' value='cash' checked>
+					<label for='rdoReimburseCash'>Cash Payment:</label>
 					
-					<input id="reimburseVials" type='radio' name='loanReimburseType' value='vials'>
-					<label for='reimburseVials'>Vial Reimbursement:</label><br/>
+					<input id="rdoReimburseVials" type='radio' name='loanReimburseType' value='doses'>
+					<label for='rdoReimburseVials'>Vial Reimbursement:</label><br/>
 
 					<input id="partialPayment" type='checkbox' name='partialPayment'>
 					<label for="partialPayment">Is Partial Repayment?</label><br/>
@@ -51,13 +86,13 @@ If vaccine, specify dose amount
 					<div class='col-md-6'>
 						<h2>Loan Information</h2>
 						<label>Vaccine:</label>
-						<input id='vacName' type='text' disabled><br/>
+						<input id='loanVacName' type='text' disabled><br/>
 
 						<label>Lot#:</label>
-						<input id='lotNum' type='text' disabled><br/>
+						<input id='loanLotNum' type='text' disabled><br/>
 
 						<label>Expiration:</label>
-						<input id='expireDate' type='text' disabled><br/>
+						<input id='loanExpireDate' type='text' disabled><br/>
 
 						<label>Quantity:</label>
 						<input id='loanQty' type='text' disabled><br/>
@@ -66,7 +101,7 @@ If vaccine, specify dose amount
 						<input id='loanDate' type='text' disabled><br/>
 
 						<label>Borrower:</label>
-						<input id='borrowerName' type='text' disabled><br/>
+						<input id='loanBorrowerName' type='text' disabled><br/>
 
 						<label>Signer:</label>
 						<input id='loanSigner' type='text' disabled><br/>
@@ -74,7 +109,7 @@ If vaccine, specify dose amount
 
 					<div class='col-md-6'>
 						<h2>Reimbursement Form</h2>
-						<label for='reimburseSigner'>Reimbursing Person:</label>
+						<label for='reimburseSigner'>Payer Name:</label>
 						<input id='reimburseSigner' type='text' name='reimburseSigner' placeholder='Person Returning Money'><br/>
 
 <!--
@@ -83,18 +118,19 @@ If vaccine, specify dose amount
 -->
 
 						<div id='reimburseCashFields'>
-							<label id="lblReimburseAmount" for="reimburseAmount">Reimburse Amount:</label>
+							<label id="lblReimburseAmount" for="reimburseAmount">Value:</label>
 							<input id="reimburseAmount" type="text" name='reimburseAmount' placeholder="Enter Monetary Value"><br/>
 						</div> <!-- /End #reimburseCash -->
 
 						<div id='reimburseDosesFields'>
-							<label id="lblLotNum" for="lotNum">Lot Number:</label>
-							<input id="lotNum" type="text" name='lotNum' placeholder="Enter Monetary Value"><br/>
+							<label id="lblLotNum" for="reimburseLotNum">Lot Number:</label>
+							<input id="reimburseLotNum" type="text" name='reimburseLotNum' placeholder="Enter Monetary Value"><br/>
 
-							<label id="lblExpireDate" for="expireDate">Expire Date:</label>
-							<input id="expireDate" type="text" name='expireDate' placeholder="Expiration Date"><br/>
+							<!--See jQuery datepicker widget: https://jqueryui.com/datepicker/ -->
+							<label id="lblExpireDate" for="reimburseExpireDate">Expire Date:</label>
+							<input id="reimburseExpireDate" type="text" name='reimburseExpireDate' placeholder="Expiration Date"><br/>
 
-							<label id="lblReimburseDoseQty" for="reimburseDoseQty">Dose Quantity:</label>
+							<label id="lblReimburseDoseQty" for="reimburseDoseQty">Dose Qty:</label>
 							<input id="reimburseDoseQty" type="text" name='reimburseDoseQty' placeholder="Dose Quantity"><br/>
 
 						</div> <!-- /End #reimburseDoses -->
@@ -116,17 +152,35 @@ If vaccine, specify dose amount
 <!-- Full screen image to display for AJAX requests -->
 <div id="AJAXPreloader"></div>
 
-</div> <!-- /End row col-md-12 -->
+</div> <!-- /End col-md-12 -->
+</div> <!-- /End row -->
 
 <script>
 
-//Creates a table of outstanding vaccine loans
-function DisplayOutstandingLoans(sortCriteria){
+//Used to trigger jQuery datepicker widget: https://jqueryui.com/datepicker/
+$(function(){
+	$("#reimburseExpireDate").datepicker({
+		minDate: 0 //Specifies that the "earliest" date available in the widget is today (zero days from today)
+	});
+}); //End annonymous function
+
+//Creates a table of outstanding vaccine loans. The "sortCriteria" variable comes from the value of the "Loan Filter Options" radio buttons
+function DisplayOutstandingLoans(sortCriteria, filterCriteria){
+	/*Options for sortCriteria: (this just orders the loans in the table - it doesn't filter them)
+		'allLoans', 'vacName', 'borrower', 'signer', 'loanDate', 'lotNum', 'expireDate', 'doses'
+	*/
+
+	/*Options for filterCriteria: (this filters, but doesn't order, the loans in the table)
+		Option is based on whatever is available & selected from the <select> element	
+	*/
+
+	//$("#filterCategoryOptions").val() == 'all') //Default option has been selected
+
 
 	$.ajax({
 		url: "<?php echo site_url('Inventory/GetOutstandingLoans'); ?>",
 		method: "POST",
-		data: {"SortCriteria": sortCriteria},
+		data: {"SortCriteria": sortCriteria, 'FilterCriteria': filterCriteria},
 		dataType: "JSON",
 		success: function(loanResult){
 			//The "loanResult" return value is a JSON object
@@ -329,25 +383,90 @@ $('#loanModal').on('show.bs.modal', function(event){
 	}); //End .each()
 
 	//Populate loan information modal text boxes
-	$("#vacName").val(loanDataArray[0]);
-	$("#lotNum").val(loanDataArray[4]);
-	$("#expireDate").val(loanDataArray[5]);
+	$("#loanVacName").val(loanDataArray[0]);
+	$("#loanLotNum").val(loanDataArray[4]);
+	$("#loanExpireDate").val(loanDataArray[5]);
 
 	$("#loanQty").val(loanDataArray[6]);
 	$("#loanDate").val(loanDataArray[3]);
-	$("#borrowerName").val(loanDataArray[1]);
+	$("#loanBorrowerName").val(loanDataArray[1]);
 	$("#loanSigner").val(loanDataArray[2]);
 
+	//Clear the values in the Reimbursement Form
+	$('#reimburseSigner').val('');
+
+	//Cash Form
+	$('#reimburseAmount').val('');
+
+	//Doses Form
+	$('#reimburseLotNum').val('');
+	$('#reimburseExpireDate').val('');
+	$('#reimburseDoseQty').val('');
+
+	//Reset the selected radio button so that it defaults to "cash" option
+	$('#rdoReimburseCash').prop('checked', true);
+
+	//Hide the "doses" form on the modal & show the "cash" form on the modal
+	$("#reimburseCashFields").css('display', 'block');
+	$("#reimburseDosesFields").css('display', 'none');
+
+	//Uncheck 'Is Partial Repayment' checkbox
+	$('#partialPayment').prop('checked', false);
 
 }); //End #loanModal.on('show.bs.modal')
+
 
 //Unchecks the selected loan when the modal dialog box is closed
 $('#loanModal').on('hide.bs.modal', function (event){
 	$("input[type='checkbox']:checked").prop('checked', false);
 }); //End #loanModal.on('hide.bs.modal')
 
+
+//Allows user to filter loans
+$("input[type='radio'][name='loanFilter']").click(function(){
+	var selected = $(this).val();
+
+	if(selected == 'all')
+	{
+		//Hide <select> element which provides contextual sort options
+		$("#filterCategoryOptions").css('display', 'none');
+		$("#filterOptionsLbl").css('display', 'none');
+	
+		//Display all outstanding loans'
+		DisplayOutstandingLoans('all', 'all');
+
+	} //End if
+	else
+	{
+		//Display <select> element which provides contextual sort options
+		$("#filterCategoryOptions").css('display', 'inline-block');
+		$("#filterOptionsLbl").css('display', 'inline');
+
+		//Sort loans by the selected criteria
+		var sortCategory = $(this).val();
+		DisplayOutstandingLoans(sortCategory, 'all');
+
+		//Populate <select> element with sort options based on the radio option value
+		$.ajax({
+			url: "<?php echo site_url('Inventory/GetLoanFilterOptions'); ?>",
+			method: "POST",
+			data: {'FilterCategory': sortCategory},
+			dataType: 'JSON',
+			success: function(possibleOptions){
+
+			}, //End success function
+			error: function(errorResult){
+
+			} //End error function
+		}); //End $.ajax()
+
+	} //End else
+
+}); //End (input[type='radio'][name='loanFilter']).click()
+
+
 //Controls events for the radio buttons on the modal dialog box
-$("input[type='radio']").click(function(){
+$("input[type='radio'][name='loanReimburseType']").click(function(){
 	//console.log("Radio button clicked!");
 
 	var selectedRdo = $(this).val();
@@ -365,7 +484,7 @@ $("input[type='radio']").click(function(){
 		$("#reimburseDosesFields").css('display', 'block');
 	} //End else
 
-}); //End input[type='radio'].click()
+}); //End (input[type='radio'][name='loanReimburseType']).click()
 
 //Controls the "Submit" button on the modal dialog box
 $("#btnReimburse").click(function(){
@@ -376,7 +495,7 @@ $("#btnReimburse").click(function(){
 //	var borrowerID = $("input[type='checkbox']:checked").data('borrowerid');
 	var drugID = $("input[type='checkbox']:checked").data('drugid');
 
-	var reimburseType = $("input[type='radio']:checked").val();
+	var reimburseType = $("input[type='radio'][name='loanReimburseType']:checked").val();
 	var isPartialReimbursement = $("#partialPayment").is(":checked");
 
 	var reimburseSigner = $("#reimburseSigner").val();
@@ -399,8 +518,8 @@ $("#btnReimburse").click(function(){
 			reimburseAmount = $("#reimburseAmount").val();
 			break;
 		case "doses":
-			lotNum = $("#lotNum").val();
-			expireDate = $("#expireDate").val();
+			lotNum = $("#reimburseLotNum").val();
+			expireDate = $("#reimburseExpireDate").val();
 			doseQty = $("#reimburseDoseQty").val();
 			break;
 		default:
@@ -428,22 +547,58 @@ $("#btnReimburse").click(function(){
 			console.log(result + ". Reimburse success");
 
 			//Provide user feedback
-
+			$("#userMsg").html("Loan Reimbursement Successful");
+			DisplaySuccessMsg();
 
 			//Refresh list of loans in the table
-		//	DisplayOutstandingLoans();
+			var sortCategory = $("input[type='radio'][name='filterLoanOptions']:checked").val();
+			var filterCategory = $("#filterCategoryOptions").val(); //#filterCategoryOptions is a <select> box
+			DisplayOutstandingLoans(sortCategory, filterCategory);
 
 		}, //End success function
 		error: function(errorResult){
 			console.log('Reimbursement error occurred');
+
+			//User feedback
+			$("#userMsg").html("Loan Reimbursement Failed");
+			DisplayErrorMsg();
+
+
 		} //End error function
 	}); //End $.ajax()
 
 }); //End #btnReimburse.click()
 
-//Controls the "Cancel" button on the modal dialog box
-$("#btnClose").click(function(){
+// //Controls the "Cancel" button on the modal dialog box
+// $("#btnClose").click(function(){
 
-}); //End #btnClose.click()
+// }); //End #btnClose.click()
+
+
+//Controls display of #userMsg element if AJAX requests are successful or user input is valid
+function DisplayErrorMsg()
+{
+	//Display userMsg element
+	$("#userMsg").css('display', 'block');
+	$("#userMsg").css('margin-left', '341.5px');
+	$("#userMsg").css('margin-right', '341.5px');
+
+	//Change background color & text color
+	$("#userMsg").css('background-color', '#f76e6e');
+	$("#userMsg").css('color', 'black');
+} //End DisplaySuccessMsg()
+
+//Controls display of #userMsg element in AJAX requests are unsuccessful or user input is invalid
+function DisplaySuccessMsg()
+{
+	//Display userMsg element
+	$("#userMsg").css('display', 'block');
+	$("#userMsg").css('margin-left', '341.5px');
+	$("#userMsg").css('margin-right', '341.5px');
+
+	//Change background color & text color
+	$("#userMsg").css('background-color', '#99ccff');
+	$("#userMsg").css('color', 'black');
+} //End DisplayErrorMsg()
 
 </script>

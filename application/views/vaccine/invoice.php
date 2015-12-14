@@ -27,6 +27,7 @@
 					echo "<input id='lotNum' type='text' name='lotNum' value=".$lotNum."><br/>";
 				echo "</div>"; //End .form-group
 
+				//See datepicker documentation: https://jqueryui.com/datepicker/
 				echo "<div class='form-group'>";
 					echo "<label for='datepicker' class='actionform'>Expiration Date (mm/dd/yyyy):</label>";
 					echo "<input id='datepicker' type='text' name='expireDate' value=".$expireDate."><br/>";

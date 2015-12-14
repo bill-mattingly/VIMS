@@ -2871,9 +2871,158 @@ function GetOutstandingLoans()
 {
 		//Get the sort criteria
 		//Allowed criteria values:
-		//'none' (default value), borrower', 'vaccineName', 'signer', 'date', 'lot', 'doseQty'
+		//'allLoans' (default value), borrower', 'vacName', 'signer', 'loanDate', 'lotNum', 'expireDate', 'doses'
 		$sortCriteria = $this->input->post('SortCriteria');
+		$filterCriteria = $this->input->post('FilterCriteria');
 		
+		$qryWhere = null; //Assigned based on $sortCriteria
+		$qryOrderBy = null; //Assigned based on $filterCriteria
+
+		//Where Clause
+		if($sortCriteria == 'all')
+		{
+			$qryWhere == '';
+			$qryOrderBy == '';
+		} //End if
+		elseif($sortCriteria != 'all' && $filterCriteria == 'all') //This means sort (rather than filter) by the selected radio button's category. Thus the WHERE clause is blank, but an ORDER BY clause exists
+		{
+			$qryWhere = "";
+
+			switch($sortCriteria)
+			{
+				case "borrower":
+					$qryOrderBy = //"WHERE b.borrowerid = $filterCriteria
+								   "ORDER BY b.borrowerid";
+					break;
+				case "vacName":
+					$qryOrderBy = "ORDER BY pr.nonproprietaryname";
+								  // "WHERE pr.nonproprietaryname = $filterCriteria";
+					break;
+				case "signer":
+					$qryOrderBy = //"WHERE lo.signer_name = $filterCriteria
+								   "ORDER BY lo.signer_name";
+					break;
+				case "loanDate":
+					$qryOrderBy = //"WHERE t.transdate = $filterCriteria
+								   "ORDER BY t.transdate";
+					break;
+				case "lotNum":
+					$qryOrderBy = //"WHERE vt.LotNum = $filterCriteria
+								   "ORDER BY vt.LotNum";
+					break;
+				case "expireDate":
+					$qryOrderBy = //"WHERE vt.ExpireDate = $filterCriteria
+								   "ORDER BY vt.ExpireDate";
+					break;
+				case "doses":
+					$qryOrderBy = //"WHERE lo.Total_Doses = $filterCriteria
+								   "ORDER BY lo.Total_Doses";
+					break;
+			} //End switch
+
+		} //End elseif
+		else
+		{
+			switch($sortCriteria)
+			{
+				// case "borrower":
+				// 	$qryWhere = "WHERE b.borrowerid = $filterCriteria";
+				// 	break;
+				// case "vacName":
+				// 	$qryWhere = "WHERE pr.nonproprietaryname = $filterCriteria";
+				// 	break;
+				// case "signer":
+				// 	$qryWhereClause = "WHERE lo.signer_name = $filterCriteria";
+				// 	break;
+				// case "loanDate":
+				// 	$qryWhereClause = "WHERE t.transdate = $filterCriteria";
+				// 	break;
+				// case "lotNum":
+				// 	$qryWhereClause = "WHERE vt.LotNum = $filterCriteria";
+				// 	break;
+				// case "expireDate":
+				// 	$qryWhereClause = "WHERE vt.ExpireDate = $filterCriteria";
+				// 	break;
+				// case "doses":
+				// 	$qryWhereClause = "WHERE lo.Total_Doses = $filterCriteria";
+				// 	break;
+				// default:
+
+				// 	break;
+
+				case "borrower":
+					$qryOrderBy = "WHERE b.borrowerid = $filterCriteria
+								   ORDER BY b.borrowerid";
+					break;
+				case "vacName":
+					$qryOrderBy = "WHERE pr.nonproprietaryname = $filterCriteria
+								   ORDER BY pr.nonproprietaryname";
+					break;
+				case "signer":
+					$qryOrderBy = "WHERE lo.signer_name = $filterCriteria
+								   ORDER BY lo.signer_name";
+					break;
+				case "loanDate":
+					$qryOrderBy = "WHERE t.transdate = $filterCriteria
+								   ORDER BY t.transdate";
+					break;
+				case "lotNum":
+					$qryOrderBy = "WHERE vt.LotNum = $filterCriteria
+								   ORDER BY vt.LotNum";
+					break;
+				case "expireDate":
+					$qryOrderBy = "WHERE vt.ExpireDate = $filterCriteria
+								   ORDER BY vt.ExpireDate";
+					break;
+				case "doses":
+					$qryOrderBy = "WHERE lo.Total_Doses = $filterCriteria
+								   ORDER BY lo.Total_Doses";
+					break;
+
+
+			} //End switch
+
+		} //End else
+
+		
+		// //Order By Clause
+		// switch($sortCriteria)
+		// {
+		// 	case "all":
+		// 		$qryOrderBy = "ORDER BY lo.loanid";
+		// 		break;
+		// 	case "borrower":
+		// 		$qryOrderBy = //"WHERE b.borrowerid = $filterCriteria
+		// 					   "ORDER BY b.borrowerid";
+		// 		break;
+		// 	case "vacName":
+		// 		$qryOrderBy = "ORDER BY pr.nonproprietaryname";
+		// 					  // "WHERE pr.nonproprietaryname = $filterCriteria";
+		// 		break;
+		// 	case "signer":
+		// 		$qryOrderBy = //"WHERE lo.signer_name = $filterCriteria
+		// 					   "ORDER BY lo.signer_name";
+		// 		break;
+		// 	case "loanDate":
+		// 		$qryOrderBy = //"WHERE t.transdate = $filterCriteria
+		// 					   "ORDER BY t.transdate";
+		// 		break;
+		// 	case "lotNum":
+		// 		$qryOrderBy = //"WHERE vt.LotNum = $filterCriteria
+		// 					   "ORDER BY vt.LotNum";
+		// 		break;
+		// 	case "expireDate":
+		// 		$qryOrderBy = //"WHERE vt.ExpireDate = $filterCriteria
+		// 					   "ORDER BY vt.ExpireDate";
+		// 		break;
+		// 	case "doses":
+		// 		$qryOrderBy = //"WHERE lo.Total_Doses = $filterCriteria
+		// 					   "ORDER BY lo.Total_Doses";
+		// 		break;
+
+		// } //End switch
+
+
 
 		//Query to assemble all currently outstanding loans
 		$qry = 
@@ -2898,7 +3047,16 @@ function GetOutstandingLoans()
 			`loanout` as lo on lo.loanid = vt.transid inner join
 			`borrower` as b on b.borrowerid = lo.borrowerid";
 
-		$qryResult = $this->db->query($qry);
+
+		//Add where clause and order by clause to initial $qry variable
+		$qryCombined = $qry.$qryWhere.$qryOrderBy;
+
+		var_dump($qryOrderBy);
+		var_dump($qryWhere);
+		var_dump($qryCombined);
+
+
+		$qryResult = $this->db->query($qryCombined);
 
 		$resultArray = $qryResult->result();
 
@@ -2995,7 +3153,7 @@ function LoanReimbursement()
 
 
 	//Query to insert the type of return transaction ('cash' or 'doses')
-	$sqlType = null; //Assigned in switch
+	$sqlType = null; //Query assigned in switch
 
 	switch($typeName)
 	{
@@ -3006,8 +3164,23 @@ function LoanReimbursement()
 						VALUES ($transID, $amount)";
 			break;
 		case 'doses': //If doses, create query to enter dose reimbursement
+			$drugID = $this->input->post('DrugID');
+			$lotNum = $this->input->post('LotNum');
+			$expireDate = $this->input->post('ExpireDate');
+			$doseQty = $this->input->post('DoseQty');
+
+			//Process date for database
+			$dateArray = explode('-', $expireDate);
+			$year = $dateArray[2];
+			$month = $dateArray[0];
+			$day = $dateArray[1];
+			var_dump($dateArray);
+
+			$expireDate = $year."-".$month."-".$day;
+			echo $expireDate;
+
 			$sqlType = "INSERT INTO dose_return_type (RETURN_ID, DRUGID, LOTNUM, EXPIREDATE, DOSE_QTY)
-						VALUES ($transID, $drugID, $lotNum, $expireDate, $doseQty)";
+						VALUES ($transID, '$drugID', '$lotNum', '$expireDate', $doseQty)";
 			break;
 		default:
 			//An error occurred
@@ -3027,6 +3200,60 @@ function LoanReimbursement()
 	echo json_encode("Return Success!");
 
 } //End LoanReimbursement()
+
+
+//Get range of loan filter options (used by loanreimburse.php view to populate the <select> element)
+function GetLoanFilterOptions()
+{
+	$filterCategory = $this->input->post('FilterCategory');
+
+	$filterField = null; //Assigned in the switch statement
+	$fieldName = null; //Assigned in the switch statement
+
+	switch($filterCategory)
+	{
+		case 'vacName':
+			$filterField = 'pr.nonproprietaryname';
+			break;
+		case 'borrower':
+			$filterField = 'b.entityname';
+			break;
+		case 'signer':
+			$filterField = 'lo.signer_name';
+			break;
+		case 'loanDate':
+			$filterField = 't.transdate';
+			break;
+		case 'lotNum':
+			$filterField = 'vt.LotNum';
+			break;
+		case 'expireDate':
+			$filterField = 'vt.ExpireDate';
+			break;
+		case 'doses':
+			$filterField = 'lo.Total_Doses';
+			break;
+		default:
+			break;
+	} //End switch
+
+	//Query
+	$sql = "SELECT $filterField
+			FROM generic_transaction t INNER JOIN vaccinetrans vt on t.transid = vt.transid
+				 INNER JOIN fda_drug_package pa on pa.drugid = vt.drugid
+				 INNER JOIN fda_product pr on pr.productid = pa.productid
+				 INNER JOIN loanout lo on lo.loanid = vt.transid
+                 INNER JOIN borrower b on b.borrowerid = lo.borrowerid
+			GROUP BY $filterField";
+
+	$result = $this->db->query($sql);
+	$resultArray = $result->result();
+
+
+
+	//Return filter options
+
+} //End GetLoanFilterOptions()
 
 
 /* End AJAX Functions */
