@@ -2871,7 +2871,7 @@ function GetOutstandingLoans()
 {
 		//Get the sort criteria
 		//Allowed criteria values:
-		//'allLoans' (default value), borrower', 'vacName', 'signer', 'loanDate', 'lotNum', 'expireDate', 'doses'
+		//'all' (default value), borrower', 'vacName', 'signer', 'loanDate', 'lotNum', 'expireDate', 'doses'
 		$sortCriteria = $this->input->post('SortCriteria');
 		$filterCriteria = $this->input->post('FilterCriteria');
 		
@@ -2891,32 +2891,25 @@ function GetOutstandingLoans()
 			switch($sortCriteria)
 			{
 				case "borrower":
-					$qryOrderBy = //"WHERE b.borrowerid = $filterCriteria
-								   "ORDER BY b.borrowerid";
+					$qryOrderBy = " ORDER BY b.borrowerid";
 					break;
 				case "vacName":
-					$qryOrderBy = "ORDER BY pr.nonproprietaryname";
-								  // "WHERE pr.nonproprietaryname = $filterCriteria";
+					$qryOrderBy = " ORDER BY pr.nonproprietaryname";
 					break;
 				case "signer":
-					$qryOrderBy = //"WHERE lo.signer_name = $filterCriteria
-								   "ORDER BY lo.signer_name";
+					$qryOrderBy = " ORDER BY lo.signer_name";
 					break;
 				case "loanDate":
-					$qryOrderBy = //"WHERE t.transdate = $filterCriteria
-								   "ORDER BY t.transdate";
+					$qryOrderBy = " ORDER BY t.transdate";
 					break;
 				case "lotNum":
-					$qryOrderBy = //"WHERE vt.LotNum = $filterCriteria
-								   "ORDER BY vt.LotNum";
+					$qryOrderBy = " ORDER BY vt.LotNum";
 					break;
 				case "expireDate":
-					$qryOrderBy = //"WHERE vt.ExpireDate = $filterCriteria
-								   "ORDER BY vt.ExpireDate";
+					$qryOrderBy = " ORDER BY vt.ExpireDate";
 					break;
 				case "doses":
-					$qryOrderBy = //"WHERE lo.Total_Doses = $filterCriteria
-								   "ORDER BY lo.Total_Doses";
+					$qryOrderBy = " ORDER BY lo.Total_Doses";
 					break;
 			} //End switch
 
@@ -2925,57 +2918,32 @@ function GetOutstandingLoans()
 		{
 			switch($sortCriteria)
 			{
-				// case "borrower":
-				// 	$qryWhere = "WHERE b.borrowerid = $filterCriteria";
-				// 	break;
-				// case "vacName":
-				// 	$qryWhere = "WHERE pr.nonproprietaryname = $filterCriteria";
-				// 	break;
-				// case "signer":
-				// 	$qryWhereClause = "WHERE lo.signer_name = $filterCriteria";
-				// 	break;
-				// case "loanDate":
-				// 	$qryWhereClause = "WHERE t.transdate = $filterCriteria";
-				// 	break;
-				// case "lotNum":
-				// 	$qryWhereClause = "WHERE vt.LotNum = $filterCriteria";
-				// 	break;
-				// case "expireDate":
-				// 	$qryWhereClause = "WHERE vt.ExpireDate = $filterCriteria";
-				// 	break;
-				// case "doses":
-				// 	$qryWhereClause = "WHERE lo.Total_Doses = $filterCriteria";
-				// 	break;
-				// default:
-
-				// 	break;
-
 				case "borrower":
-					$qryOrderBy = "WHERE b.borrowerid = $filterCriteria
+					$qryOrderBy = " WHERE b.borrowerid = '$filterCriteria'
 								   ORDER BY b.borrowerid";
 					break;
 				case "vacName":
-					$qryOrderBy = "WHERE pr.nonproprietaryname = $filterCriteria
+					$qryOrderBy = " WHERE pr.nonproprietaryname = '$filterCriteria'
 								   ORDER BY pr.nonproprietaryname";
 					break;
 				case "signer":
-					$qryOrderBy = "WHERE lo.signer_name = $filterCriteria
+					$qryOrderBy = " WHERE lo.signer_name = '$filterCriteria'
 								   ORDER BY lo.signer_name";
 					break;
 				case "loanDate":
-					$qryOrderBy = "WHERE t.transdate = $filterCriteria
+					$qryOrderBy = " WHERE t.transdate = '$filterCriteria'
 								   ORDER BY t.transdate";
 					break;
 				case "lotNum":
-					$qryOrderBy = "WHERE vt.LotNum = $filterCriteria
+					$qryOrderBy = " WHERE vt.LotNum = '$filterCriteria'
 								   ORDER BY vt.LotNum";
 					break;
 				case "expireDate":
-					$qryOrderBy = "WHERE vt.ExpireDate = $filterCriteria
+					$qryOrderBy = " WHERE vt.ExpireDate = '$filterCriteria'
 								   ORDER BY vt.ExpireDate";
 					break;
 				case "doses":
-					$qryOrderBy = "WHERE lo.Total_Doses = $filterCriteria
+					$qryOrderBy = " WHERE lo.Total_Doses = '$filterCriteria'
 								   ORDER BY lo.Total_Doses";
 					break;
 
@@ -2983,46 +2951,6 @@ function GetOutstandingLoans()
 			} //End switch
 
 		} //End else
-
-		
-		// //Order By Clause
-		// switch($sortCriteria)
-		// {
-		// 	case "all":
-		// 		$qryOrderBy = "ORDER BY lo.loanid";
-		// 		break;
-		// 	case "borrower":
-		// 		$qryOrderBy = //"WHERE b.borrowerid = $filterCriteria
-		// 					   "ORDER BY b.borrowerid";
-		// 		break;
-		// 	case "vacName":
-		// 		$qryOrderBy = "ORDER BY pr.nonproprietaryname";
-		// 					  // "WHERE pr.nonproprietaryname = $filterCriteria";
-		// 		break;
-		// 	case "signer":
-		// 		$qryOrderBy = //"WHERE lo.signer_name = $filterCriteria
-		// 					   "ORDER BY lo.signer_name";
-		// 		break;
-		// 	case "loanDate":
-		// 		$qryOrderBy = //"WHERE t.transdate = $filterCriteria
-		// 					   "ORDER BY t.transdate";
-		// 		break;
-		// 	case "lotNum":
-		// 		$qryOrderBy = //"WHERE vt.LotNum = $filterCriteria
-		// 					   "ORDER BY vt.LotNum";
-		// 		break;
-		// 	case "expireDate":
-		// 		$qryOrderBy = //"WHERE vt.ExpireDate = $filterCriteria
-		// 					   "ORDER BY vt.ExpireDate";
-		// 		break;
-		// 	case "doses":
-		// 		$qryOrderBy = //"WHERE lo.Total_Doses = $filterCriteria
-		// 					   "ORDER BY lo.Total_Doses";
-		// 		break;
-
-		// } //End switch
-
-
 
 		//Query to assemble all currently outstanding loans
 		$qry = 
@@ -3051,9 +2979,9 @@ function GetOutstandingLoans()
 		//Add where clause and order by clause to initial $qry variable
 		$qryCombined = $qry.$qryWhere.$qryOrderBy;
 
-		var_dump($qryOrderBy);
-		var_dump($qryWhere);
-		var_dump($qryCombined);
+	//	var_dump($qryOrderBy);
+	//	var_dump($qryWhere);
+	//	var_dump($qryCombined);
 
 
 		$qryResult = $this->db->query($qryCombined);
@@ -3209,29 +3137,37 @@ function GetLoanFilterOptions()
 
 	$filterField = null; //Assigned in the switch statement
 	$fieldName = null; //Assigned in the switch statement
+	$objectProperty = null; //Assigned in switch (stores the name of the column referenced in the SELECT part of the query - in CodeIgniter, the column names becomes the property names of the query result rows (each row is an object))
 
 	switch($filterCategory)
 	{
 		case 'vacName':
 			$filterField = 'pr.nonproprietaryname';
+			$objectProperty = 'nonproprietaryname';
 			break;
 		case 'borrower':
 			$filterField = 'b.entityname';
+			$objectProperty = 'entityname';
 			break;
 		case 'signer':
 			$filterField = 'lo.signer_name';
+			$objectProperty = 'signer_name';
 			break;
 		case 'loanDate':
 			$filterField = 't.transdate';
+			$objectProperty = 'transdate';
 			break;
 		case 'lotNum':
 			$filterField = 'vt.LotNum';
+			$objectProperty = 'LotNum';
 			break;
 		case 'expireDate':
 			$filterField = 'vt.ExpireDate';
+			$objectProperty = 'ExpireDate';
 			break;
 		case 'doses':
 			$filterField = 'lo.Total_Doses';
+			$objectProperty = 'Total_Doses';
 			break;
 		default:
 			break;
@@ -3249,9 +3185,18 @@ function GetLoanFilterOptions()
 	$result = $this->db->query($sql);
 	$resultArray = $result->result();
 
+	$processedArray = null; //Populated in foreach loop
+	$counter = 0; //Assigns array index for $processedArray
 
+	foreach($resultArray as $row)
+	{
+		$processedArray[$counter] = $row->$objectProperty;
+		$counter++;
+	} //End foreach()
 
-	//Return filter options
+	//Return $processedArray
+	echo json_encode($processedArray);
+
 
 } //End GetLoanFilterOptions()
 

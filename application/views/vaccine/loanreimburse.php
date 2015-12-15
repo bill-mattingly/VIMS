@@ -35,7 +35,7 @@
 
 		<label id='filterOptionsLbl' for='filterCategoryOptions'>Filter Options:</label>
 		<select id='filterCategoryOptions'>
-			<option value='all' selected>Select Filter</option>
+			<option value='all' selected>Select Option</option>
 		</select> <!--Populated based on the selected radio button-->
 
 	</div> <!-- /End #filterLoans -->
@@ -186,6 +186,9 @@ function DisplayOutstandingLoans(sortCriteria, filterCriteria){
 			//The "loanResult" return value is a JSON object
 			//It has 3 properties: headerRow, tableData, and numLoans
 
+			//Clear any current records in the table
+			$("#outstandingLoansTbl").empty();
+
 
 			//Create table header row & add to the table
 			var header = "<tr>"; //Opening tr tag
@@ -248,18 +251,6 @@ function DisplayOutstandingLoans(sortCriteria, filterCriteria){
 						} //End switch
 					} //End for loop
 
-					//Loop through the attributes of that row object
-//					loanResult.tableData[index].forEach(function(element, index, array)
-//					{
-//						if(index != 0)
-//						{
-//							tableData += "<td>" + element + "</td>"
-//						} //End if
-//						else
-//						{
-//							loanID = element;
-//						} //End else
-//					}); //End "inner" forEach (accessing a specific row result object's attributes)
 
 					//Add checkbox to final column of row
 					tableData += "<td><input id='checkBoxLoanID" + loanID + "' type='checkbox' value='" + loanID + "' data-loanID='" + loanID + "' data-borrowerID='" + borrowerID + "' data-drugID='" + drugID + "' data-toggle='modal' data-target='#loanModal'></td>";
@@ -286,84 +277,8 @@ function DisplayOutstandingLoans(sortCriteria, filterCriteria){
 
 	}); //End .ajax()
 
-} //End GetOutstandingLoans()
+} //End DisplayOutstandingLoans()
 
-// function Callback_TableRow(element, index, array) //foreach(loanResult.headerRow as colName)
-// {
-// 	console.log("element[" + index + "] = " + element);
-// }
-
-
-
-// Modified from "team_photo.js" (happistudy.net), originally by Matt Grassman
-// team_photo.js was adapted from code example: http://getbootstrap.com/javascript/#modals-related-target
-// 12/9/2015
-
-// // This script parses several attributes to be used by the modal dialog box with the id photo-modal in team.php
-// $('#loanModal').on('show.bs.modal', function (event) {
-  
-// 	//Get loan data to display in the dialog box
-
-
-// 	// console.log(event);
-// 	var element = event.relatedTarget;
-// 	var loanID = $(element).data('loanid');
-
-
-
-
-// //Begin original code
-
-// //  var thumb = $(event.relatedTarget);		// Thumbnail that triggered the modal
-// //  var photoSrc = thumb.attr("src");			// Extract image's src attribute
-// //  var pieces = photoSrc.split("/");			// Break photo source URL into pieces for parsing
-// //  var photoFile = pieces[pieces.length-1];	// Select last index in pieces array for filename
-// //  var photoDir = "photos/large/";			// Directory that large versions of photos are stored in
-// //  var name = thumb.attr("alt");				// Grab employee's name from image's alt text attribute
-
-// //  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-// //  var modal = $(this);
-// //  modal.find('#modal-employeeName').text(name);					//Place employee name in title portion of modal
-// //  modal.find('#modal-photo').attr("src", photoDir + photoFile);	//Set image source to large version of employee photo
-
-// //End original code
-
-
-// }); //End #loanModal.on('show.bs.modal')
-
-// //Get selected row to store all loan data in session variables (for populating the modal dialog with loan details)
-// $("input[type='checkbox']").on('mousedown', function(){
-	
-// 	//Get selected row 
-// 	var selectedRow = $(this).closest('tr');
-
-
-// 	//Get the selected row's loan information
-// 	var loanid = $("input[type='checkbox']:checked").data('loanid');
-// 	var borrowerid = $("input[type='checkbox']:checked").data('borrowerid');
-
-// 	var vacName = selectedRow[0].innerHtml;
-// 	var borrowerName = selectedRow[1].innerHtml;
-// 	var loanSigner = selectedRow[2].innerHtml;
-// 	var loanDate = selectedRow[3].innerHtml;
-
-// 	var lotNum = selectedRow[4].innerHtml;
-// 	var expireDate = selectedRow[5].innerHtml;
-// 	var loanQty = selectedRow[6].innerHtml;
-
-// 	//Store loan information in a session variable (to be accessed by the modal dialog)
-// 	sessionStorage.setItem('loanID', loanID);
-// 	sessionStorage.setItem('borrowerID', borrowerID);
-// 	sessionStorage.setItem('vacName', vacName);
-// 	sessionStorage.setItem('borrowerName', borrowerName);
-
-// 	sessionStorage.setItem('loanSigner', loanSigner);
-// 	sessionStorage.setItem('loanDate', loanDate);
-// 	sessionStorage.setItem('lotNum', lotNum);
-// 	sessionStorage.setItem('expireDate', expireDate);
-// 	sessionsStorage.setItem('loanQty', loanQty);
-
-// }); //End $(#outstandingLoansTbl tr).click()
 
 //Populates modal dialog with loan information from sessionStorage variable
 $('#loanModal').on('show.bs.modal', function(event){
@@ -452,10 +367,24 @@ $("input[type='radio'][name='loanFilter']").click(function(){
 			method: "POST",
 			data: {'FilterCategory': sortCategory},
 			dataType: 'JSON',
-			success: function(possibleOptions){
+			success: function(filterOptions){
+				//Populate #filterCategoryOptions <select> element with results
+				console.log(filterOptions);
+
+				//Empty #filterCategoryOptions <select> element
+				$("#filterCategoryOptions").empty();
+
+				//Repopulate #filterCategoryOptions
+				$("#filterCategoryOptions").append("<option value='all' selected>Select Option</option>");
+
+				$.each(filterOptions, function(key, value){
+					$("#filterCategoryOptions").append('<option value=\''+ value +'\'>' + value + '</option>');
+				});
+
 
 			}, //End success function
 			error: function(errorResult){
+				console.log("An error occurred");
 
 			} //End error function
 		}); //End $.ajax()
@@ -485,6 +414,19 @@ $("input[type='radio'][name='loanReimburseType']").click(function(){
 	} //End else
 
 }); //End (input[type='radio'][name='loanReimburseType']).click()
+
+
+$("#filterCategoryOptions").change(function(){
+
+	var sortCriteria = $("input[type='radio'][name='loanFilter']:checked").val();
+	var filterCriteria = $(this).val();
+
+	//Redraw loan table so it only contains the value from the <select> element
+	DisplayOutstandingLoans(sortCriteria, filterCriteria);
+
+
+}); //End #filterCategoryOptions.change()
+
 
 //Controls the "Submit" button on the modal dialog box
 $("#btnReimburse").click(function(){
