@@ -3,27 +3,20 @@
 class Vaccine extends CI_Model
 {
 	//Class Variables
-//	private $packageNDC; //type string //stores the NDC ("National Drug Code") value on the vaccine's box
 	private $drugID; //type int //stores a vaccine's DrugID (from the fda_drug_package table)
 	private $saleNDC; //type string //stores the NDC value on a vaccine's containing box/package
 	private $unitNDC; //type string //stores the NDC value on a single dose of vaccine
-//	private $linBarcode; //type string //stores linear ("traditional 1D") barcode
-//	private $qrBarcode; //type string //stores QR ("2D") barcode
 	private $expireDate; //type date (YYYY/MM/DD format) //stores vaccine expiration date 
 	private $lotNum; //type string //stores vaccine lot number
 	private $labelerName; //type string //stores manufacturer's name
 	private $vacFormalName; //type string //stores vaccine's formal (proprietary) name
 	private $vacCommonName; //type string //stores vaccine's common name
-//	private $transQty; //type int //stores the # of individual vaccine units in a transaction (a transaction could be administering to patient, purchasing vaccine, loaning out vaccine, or receiving payment for a vaccine loan)
-//	private $transDate; //type date (YYYY/MM/DD format) //stores the date the transaction took place
-//	private $clinicCost; //type float //stores the vaccine's cost to the clinic
-//	private $repName; //type string //stores the first and last name of the drug rep who sold vaccine to the clinic	
-//	private $customerPrice; //type float //stores price the customer was charged when administed (value could range from "null" to any positive value)
 
 	//Constructor
 	public function __construct(){
 		$this->load->database();
-	}
+		$this->load->library('Ion_auth'); //Loads Ion_auth library which provides user account management
+	} //End __construct()
 
 
 	//Custom Methods
@@ -86,20 +79,17 @@ class Vaccine extends CI_Model
 		{
 			//Parse barcode for ndc
 			$theNDC = substr($barcode, 5, 10); //segment of barcode string with the NDC
-			//$theNDCArray = $this->ParseBarcode($theNDC, $isASaleNDC);
 			$theNDCArray = $this->ParseNDC($theNDC, $isASaleNDC);
 
 			//Parse barcode for expiration date
 			$expireDate = substr($barcode, 18, 6);//segment of barcode string with the expiration date
+
 			//Format expireDate for input into database (mm-dd-yyyy format)
-			//echo "expireDate before processing: $expireDate<br/>";
 			$expireDate = substr($expireDate, 2, 2)."-".substr($expireDate, 4, 2)."-20".substr($expireDate, 0, 2);
-			//echo "Here is the expire date: $expireDate<br/>";
 
 			//Parse barcode for lot number
 			$lotNum = substr($barcode, 26);//segment of barcode string with the lot number
-			//echo "Here is the lotnum: $lotNum<br/>";
-
+	
 			//Store values in barcode array
 			$barcodeArray["ndc10"] = $theNDCArray['ndc10'];
 			$barcodeArray['ndc11'] = $theNDCArray['ndc11'];
@@ -194,7 +184,6 @@ class Vaccine extends CI_Model
 
 		if($isASaleNDC == TRUE)
 		{
-			//echo "Sale NDC is true";
 			$qry = 
 				"SELECT DrugID 
 				FROM `fda_drug_package` 
@@ -202,7 +191,6 @@ class Vaccine extends CI_Model
 		}
 		else
 		{
-			//echo "Sale NDC is false";
 			$qry = 
 				"SELECT DrugID 
 				FROM `fda_drug_package`
@@ -293,22 +281,20 @@ class Vaccine extends CI_Model
 		//Select the smallest DrugID value (this is the carton DrugID) for the SaleNDC number that corresponds to the vial DrugID
 		$qry =
 			"SELECT MIN(DrugID) as PackageDrugID
-			 FROM FDA_DRUG_PACKAGE
+			 FROM fda_drug_package
 			 WHERE SALENDC10 IN
 			 	(SELECT SaleNDC10
-			 	 FROM FDA_DRUG_PACKAGE
+			 	 FROM fda_drug_package
 			 	 WHERE DrugID = $aVialDrugID)";
 
 		$result = $this->db->query($qry);
 		$resultArray = $result->result();
 
 		$resultArray = $resultArray[0]->PackageDrugID;
-		//var_dump($resultArray);
 
 		return $resultArray;
 
 	} //End GetPackageDrugID()
-
 
 
 	//Occurs when an order is placed for a vaccine. Increases the quantity of an existing vaccine.
@@ -316,7 +302,6 @@ class Vaccine extends CI_Model
 	{
 			//Insert into Transaction & VaccineTrans tables
 			$transData = $this->TransVacTransInsert($aDrugID);
-
 
 			//Insert transaction into Order_Invoice
 			$invoiceTrans = array(
@@ -335,7 +320,7 @@ class Vaccine extends CI_Model
 			//Return $transData array to controller for display by the view
 			return $transData;
 
-	} //End OrderInvoice method
+	} //End OrderInvoice()
 
 	//Occurs when a vaccine is administered to a patient. Decreases the quantity of an existing vaccine.
 	public function Administer($aDrugID)
@@ -368,9 +353,8 @@ class Vaccine extends CI_Model
 		$administerTrans = array(
 			"AdministerID" => $transData['TransID'],
 			"Package_DrugID" => $packageDrugID,
-			//"PID" => $this->session->clinicCost,//$this->input->post('clinicCost'),
-			"Cust_Per_Dose_Chrg" => $this->session->customerChrg,//$this->input->post('packageQty'),
-			"Doses_Given" => $this->session->doseQty//$this->input->post('dosesPerPackage')
+			"Cust_Per_Dose_Chrg" => $this->session->customerChrg,
+			"Doses_Given" => $this->session->doseQty
 			);
 
 		$this->db->insert('administer', $administerTrans);
@@ -381,7 +365,7 @@ class Vaccine extends CI_Model
 
 		//Update and return $transData array to controller for display by the view
 		return $transData;
-	}
+	} //End Administer()
 
 	//Occurs when a medical group asks the clinic if it can borrow vaccine from the clinic's inventory. Decreases clinic inventory.
 	public function LoanOut($aDrugID, $aBorrowerID, $theLoanSigner)
@@ -395,7 +379,6 @@ class Vaccine extends CI_Model
 			"LoanID" => $transData['TransID'],
 			"BorrowerID" => $aBorrowerID,
 			"Signer_Name" => $theLoanSigner,
-		//	"PackageQty" => $this->session->PackageQty,
 			"Total_Doses" => $this->session->DosesPerPackage
 		);
 
@@ -407,173 +390,142 @@ class Vaccine extends CI_Model
 
 		//Return transaction data array
 		return $transData;
-	} //End LoanOut
-
-	// //Occurs when a medical group returns vaccine to the clinic to return borrowed vaccine. Increases vaccine inventory
-	// public function LoanReturn($aDrugID, $aBorrowerID)
-	// {
-	// 	//Insert into Transaction & VaccineTrans
-	// 	$transData = $this->TransVacTransInsert($aDrugID);
-
-	// 	//Insert into LoanReturn
-	// 	$loanReturn = array(
-	// 		"ReturnID" => $transData['TransID'],
-	// 		"BorrowerID" => $aBorrowerID,
-	// 		"PackageQty" => $this->session->PackageQty,
-	// 		"Doses_Per_Package" => $this->session->DosesPerPackage
-	// 	);
-
-	// 	$this->db->insert('loanreturn', $loanReturn);
-
-	// 	//Transaction report
-	// 	$tblSummary = $this->GetTransaction($transData['TransID'], 'loanreturn', FALSE);
-	// 	$transData['tblSummary'] = $tblSummary;
-
-	// 	//Return $transData array
-	// 	return $transData;
-
-	// } //End LoanReturn
+	} //End LoanOut()
 
 	public function GetTransaction($aTransID, $transType, $resultAsArray)
 	{
-			switch ($transType)
-			{
-				case 'invoice':
+		switch ($transType)
+		{
+			case 'invoice':
 
-					$qryTransItem =
-					"SELECT 
-						T.TransDate as 'Transaction Date', 
-						Pa.SaleNDC10 as 'Bulk Carton/Package NDC', 
-						Pa.UseNDC10 as 'Individual Vial/Dose NDC',
-						Pr.ProprietaryName as 'Proprietary Name', 
-						Pr.NonProprietaryName as 'Non-Proprietary Name', 
-						Pr.LabelerName as 'Labeler Name', 
-						Pa.PackageDescrip as 'Description', 
-						Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
-						Vt.LotNum as 'Lot Number', 
-						Oi.Clinic_Per_Dose_Cost as 'Per Dose Cost', 
-						Oi.PackageQty as 'Package Qty', 
-						Oi.Doses_Per_Package as 'Doses Per Package'
-					FROM 
-						`fda_product` Pr inner join 
-						`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
-						`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
-						`transaction` T on Vt.TransId = T.TransID inner join
-						`order_invoice` Oi on Vt.TransID = Oi.InvoiceID
-					WHERE 
-						Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
-					
-					break;
+				$qryTransItem =
+				"SELECT 
+					T.TransDate as 'Transaction Date', 
+					Pa.SaleNDC10 as 'Bulk Carton/Package NDC', 
+					Pa.UseNDC10 as 'Individual Vial/Dose NDC',
+					Pr.ProprietaryName as 'Proprietary Name', 
+					Pr.NonProprietaryName as 'Non-Proprietary Name', 
+					Pr.LabelerName as 'Labeler Name', 
+					Pa.PackageDescrip as 'Description', 
+					Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
+					Vt.LotNum as 'Lot Number', 
+					Oi.Clinic_Per_Dose_Cost as 'Per Dose Cost', 
+					Oi.PackageQty as 'Package Qty', 
+					Oi.Doses_Per_Package as 'Doses Per Package'
+				FROM 
+					`fda_product` Pr inner join 
+					`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
+					`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
+					`generic_transaction` T on Vt.TransId = T.TransID inner join
+					`order_invoice` Oi on Vt.TransID = Oi.InvoiceID
+				WHERE 
+					Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
+				
+				break;
 
-				case 'administer':
+			case 'administer':
 
-					$qryTransItem =
-					"SELECT 
-						T.TransDate as 'Transaction Date', 
-						Pa.SaleNDC10 as 'Bulk Carton/Package NDC', 
-						Pa.UseNDC10 as 'Individual Vial/Dose NDC',
-						Pr.ProprietaryName as 'Proprietary Name', 
-						Pr.NonProprietaryName as 'Non-Proprietary Name', 
-						Pr.LabelerName as 'Labeler Name', 
-						Pa.PackageDescrip as 'Description', 
-						Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
-						Vt.LotNum as 'Lot Number', 
-						A.Cust_Per_Dose_Chrg as 'Customer Charge Per Dose', 
-						A.Doses_Given as 'Number of Doses Given'	
-					FROM 
-						`fda_product` Pr inner join 
-						`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
-						`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
-						`transaction` T on Vt.TransId = T.TransID inner join
-						`administer` A on Vt.TransID = A.AdministerID
-					WHERE 
-						Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
-					
-					break;
+				$qryTransItem =
+				"SELECT 
+					T.TransDate as 'Transaction Date', 
+					Pa.SaleNDC10 as 'Bulk Carton/Package NDC', 
+					Pa.UseNDC10 as 'Individual Vial/Dose NDC',
+					Pr.ProprietaryName as 'Proprietary Name', 
+					Pr.NonProprietaryName as 'Non-Proprietary Name', 
+					Pr.LabelerName as 'Labeler Name', 
+					Pa.PackageDescrip as 'Description', 
+					Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
+					Vt.LotNum as 'Lot Number', 
+					A.Cust_Per_Dose_Chrg as 'Customer Charge Per Dose', 
+					A.Doses_Given as 'Number of Doses Given'	
+				FROM 
+					`fda_product` Pr inner join 
+					`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
+					`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
+					`generic_transaction` T on Vt.TransId = T.TransID inner join
+					`administer` A on Vt.TransID = A.AdministerID
+				WHERE 
+					Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
+				
+				break;
 
-				case 'loanout':
+			case 'loanout':
 
-					$qryTransItem = 
-					"SELECT 
-						T.TransDate as 'Transaction Date', 
-						Pa.SaleNDC10 as 'Bulk Carton/Package NDC', 
-						Pa.UseNDC10 as 'Individual Vial/Dose NDC',
-						B.EntityName as 'Borrower Name',
-						Lo.Signer_Name as 'Loan Signer', 
-						Pr.ProprietaryName as 'Proprietary Name', 
-						Pr.NonProprietaryName as 'Non-Proprietary Name', 
-						Pr.LabelerName as 'Labeler Name', 
-						Pa.PackageDescrip as 'Description', 
-						Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
-						Vt.LotNum as 'Lot Number', 
-						LO.Total_Doses as 'Total Doses'
-					/*	LO.PackageQty as 'Number of Packages Loaned', 
-						LO.Doses_Per_Package as 'Doses Per Package'   */
-					FROM 
-						`fda_product` Pr inner join 
-						`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
-						`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
-						`transaction` T on Vt.TransId = T.TransID inner join
-						`loanout` LO on Vt.TransID = LO.LoanID inner join
-						`borrower` B on LO.BorrowerID = B.BorrowerID
-					WHERE 
-						Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
-					
-					break;
+				$qryTransItem = 
+				"SELECT 
+					T.TransDate as 'Transaction Date', 
+					Pa.SaleNDC10 as 'Bulk Carton/Package NDC', 
+					Pa.UseNDC10 as 'Individual Vial/Dose NDC',
+					B.EntityName as 'Borrower Name',
+					Lo.Signer_Name as 'Loan Signer', 
+					Pr.ProprietaryName as 'Proprietary Name', 
+					Pr.NonProprietaryName as 'Non-Proprietary Name', 
+					Pr.LabelerName as 'Labeler Name', 
+					Pa.PackageDescrip as 'Description', 
+					Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
+					Vt.LotNum as 'Lot Number', 
+					LO.Total_Doses as 'Total Doses'
+				FROM 
+					`fda_product` Pr inner join 
+					`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
+					`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
+					`generic_transaction` T on Vt.TransId = T.TransID inner join
+					`loanout` LO on Vt.TransID = LO.LoanID inner join
+					`borrower` B on LO.BorrowerID = B.BorrowerID
+				WHERE 
+					Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
+				
+				break;
 
-				case 'loanreturn':
+			case 'loanreturn':
 
-					$qryTransItem = 
-					"SELECT 
-						T.TransDate as 'Transaction Date',
-						Pa.SaleNDC10 as 'Bulk Carton/Package NDC',
-						Pa.UseNDC10 as 'Individual Vial/Dose NDC',
-						B.EntityName as 'Borrower Name', 
-						Pr.ProprietaryName as 'Proprietary Name', 
-						Pr.NonProprietaryName as 'Non-Proprietary Name', 
-						Pr.LabelerName as 'Labeler Name', 
-						Pa.PackageDescrip as 'Description', 
-						Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
-						Vt.LotNum as 'Lot Number', 
-						LR.Total_Doses as 'Total Doses'
-					/*	LR.PackageQty as 'Number of Packages Loaned', 
-						LR.Doses_Per_Package as 'Doses Per Package'    */
-					FROM 
-						`fda_product` Pr inner join 
-						`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
-						`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
-						`transaction` T on Vt.TransId = T.TransID inner join
-						`loanreturn` LR on Vt.TransID = LR.ReturnID inner join
-						`borrower` B on LR.BorrowerID = B.BorrowerID
-					WHERE 
-						Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
-					
-					break;
+				$qryTransItem = 
+				"SELECT 
+					T.TransDate as 'Transaction Date',
+					Pa.SaleNDC10 as 'Bulk Carton/Package NDC',
+					Pa.UseNDC10 as 'Individual Vial/Dose NDC',
+					B.EntityName as 'Borrower Name', 
+					Pr.ProprietaryName as 'Proprietary Name', 
+					Pr.NonProprietaryName as 'Non-Proprietary Name', 
+					Pr.LabelerName as 'Labeler Name', 
+					Pa.PackageDescrip as 'Description', 
+					Vt.ExpireDate as 'Expiration Date (yyyy/mm/dd)', 
+					Vt.LotNum as 'Lot Number', 
+					LR.Total_Doses as 'Total Doses'
+				FROM 
+					`fda_product` Pr inner join 
+					`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
+					`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
+					`generic_transaction` T on Vt.TransId = T.TransID inner join
+					`loanreturn` LR on Vt.TransID = LR.ReturnID inner join
+					`borrower` B on LR.BorrowerID = B.BorrowerID
+				WHERE 
+					Vt.TransID = $aTransID"; //Provides info on the most recently inserted transaction
+				
+				break;
 
-				default:
-					break;
-			}
+			default:
+				break;
+		}
 
 
-			$qryResult = $this->db->query($qryTransItem);
+		$qryResult = $this->db->query($qryTransItem);
 
-			if($resultAsArray)
-			{
-				$result = $qryResult->result();
-			}
-			else
-			{
-				$result = $qryResult; //returns a query as an "object" rather than an as an "array of objects"
-			}
+		if($resultAsArray)
+		{
+			$result = $qryResult->result();
+		}
+		else
+		{
+			$result = $qryResult; //returns a query as an "object" rather than an as an "array of objects"
+		}
 
-			return $result;
-	}
+		return $result;
+	} //End GetTransaction()
 
 	//Provides all information on a single vaccine
 	public function GetSingleVacInventory($aDrugID)
 	{
-			
-
 		$sql = 
 		"SELECT  
 			pr.proprietaryname as 'Proprietary Name',
@@ -585,12 +537,11 @@ class Vaccine extends CI_Model
 			pa.drug_cost as 'Clinic Cost', 
 			pa.trvl_chrg as 'Travel Patient Chrg', 
 			pa.refugee_chrg as 'Refugee Patient Chrg',
-		/*	pa.numdosespackage as 'Number Doses Package',  */
-		/*	net.transid as 'Trans ID', */
 			net.drugid as 'Drug ID', 
 			net.lotnum as 'Lot Number', 
 			net.expiredate as 'Expire Date', 
 			sum(net.vacdoses) as 'Net Doses'
+
 		FROM
 			(
 				/*
@@ -652,10 +603,7 @@ class Vaccine extends CI_Model
 
 		$result = $this->db->query($sql);
 
-		//VAR_DUMP($result);
-
 		$resultArray = $result->result();
-		//var_dump($resultArray);
 
 		//Check the $resultArray for Lot Numbers with zero inventory & remove these from the array
 		$modifiedResult = null; //Stores the $resultArray modified to not include lot numbers with 0 inventory
@@ -667,53 +615,32 @@ class Vaccine extends CI_Model
 			{
 				$modifiedResult[$counter] = $lotNumber;
 				$counter++;
-			}
-			// else
-			// {
-			// 	continue 1; //Continue to the next loop iteration (the integer after continue tells the loop how many iterations to skip; the default is 1. I wanted to be explicit, so I wrote "1")
-			// }
-			
-		}
+			}			
+		} //End foreach()
 
-
-		return $modifiedResult; //$resultArray;
-	}
-
+		return $modifiedResult;
+	} //End GetSingleVacInventory()
 
 
 	//Provides all information on a group of vaccines
 	public function GetMultiVacInventory($aDrugIDArray)
 	{
-		//var_dump($aDrugIDArray);
-
-		//$sortedDrugID; //= null;
-		//$sortedDrugID = asort($aDrugIDArray);
 		$arrayCount = count($aDrugIDArray);
 
 		if ($arrayCount > 1)
 		{
 			asort($aDrugIDArray); //asort() sorts the array & then returns a boolean value
-			//var_dump($sortedDrugID);
 		}
-		// else
-		// {
-		// 	$sortedDrugID = $aDrugIDArray;
-		// }
-
-		
-
 
 		//Min DrugID
-		//var_dump($sortedDrugID);
-
 		$minDrugID = $aDrugIDArray[0]; //First DrugID in the array
 
 		//Max DrugID
 		$maxDrugID = $aDrugIDArray[($arrayCount - 1)];
 
-		//var_dump($minDrugID);
-		//var_dump($maxDrugID);
 
+/************/
+/************/
 
 
 		//Inventory query
@@ -781,17 +708,16 @@ class Vaccine extends CI_Model
 		WHERE 
 			net.drugid BETWEEN '".$minDrugID."' AND '".$maxDrugID."'
 		GROUP BY 
-			net.drugid"; //, net.lotnum, net.expiredate";
+			net.drugid";
+
+/************/
+/************/
 
 		//End SQL query
 
-		//var_dump($sql);
 		$result = $this->db->query($sql);
 
-		//VAR_DUMP($result);
-
 		$resultArray = $result->result();
-		//var_dump($resultArray);
 
 		//Check query result for rows with net inventory == 0 (& remove those rows from the result returned to the calling method)
 		$modifiedResult = null; //array of query result objects which stores the result rows which have inventory > 0
@@ -807,87 +733,9 @@ class Vaccine extends CI_Model
 
 		}
 
-		return $modifiedResult; //$resultArray;
+		return $modifiedResult;
 	
 	} //End GetMultiVacInventory()
-
-
-
-
-
-	// public function GetInventorySummary()
-	// {
-	// 	$sql = 
-	// 	"SELECT 
-	// 		pr.proprietaryname as 'Proprietary Name',
-	// 		pr.nonproprietaryname as 'Non-Proprietary Name', 
-	// 		pr.labelername as 'Labeler Name', 
-	// 		pa.salendc10 as 'Carton NDC10', 
-	// 		pa.usendc10 'Dose NDC10', 
-	// 		pa.fulldescrip as 'Description', 
-	// 		pa.drug_cost as 'Clinic Cost', 
-	// 		pa.trvl_chrg as 'Travel Patient Chrg', 
-	// 		pa.refugee_chrg as 'Refugee Patient Chrg', 
-	// 		net.drugid as 'Drug ID', 
-	// 		net.lotnum as 'Lot Number', 
-	// 		net.expiredate as 'Expire Date', 
-	// 		sum(net.vacdoses) as 'Net Doses'
-	// 	FROM
-	// 		(
-	// 			/*Invoice transactions*/
-	// 				(SELECT
-	// 				 	vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, sum(oi.doses_per_package * oi.packageqty) as vacdoses 
-	// 				 FROM 
-	// 				 	vaccinetrans vt inner join order_invoice oi on vt.transid = oi.invoiceid 
-	// 				 GROUP BY 
-	// 				 	vt.drugid, vt.lotnum, vt.expiredate)
-
-	// 			UNION
-	// 			/*Administer transactions*/ 
-	// 				(SELECT 
-	// 					a.package_drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, SUM( a.doses_given)*-1 AS vacdoses /* Multiplied by '-1' to show a reduction in inventory*/
-	// 				FROM 
-	// 					vaccinetrans vt INNER JOIN administer a ON vt.transid = a.administerid
-	// 				GROUP BY 
-	// 					vt.drugid, vt.lotnum, vt.expiredate)
-
-	// 			UNION
-	// 			/*LoanOut transactions*/
-	// 				(SELECT 
-	// 					vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, SUM(lo.doses_per_package * lo.packageqty)*-1 AS vacdoses /* Multiplied by '-1' to show a reduction in inventory*/
-	// 				FROM
-	// 					vaccinetrans vt INNER JOIN loanout lo ON vt.transid = lo.borrowerid
-	// 				GROUP BY
-	// 					vt.drugid, vt.lotnum, vt.expiredate)
-
-	// 			UNION
-	// 			/*LoanReturn transactions*/
-	// 				(SELECT
-	// 					vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, sum(lr.doses_per_package * lr.packageqty) as vacdoses
-	// 				FROM
-	// 					vaccinetrans vt INNER JOIN loanreturn lr on vt.transid = lr.returnid
-	// 				GROUP BY
-	// 					vt.drugid, vt.lotnum, vt.expiredate
-	// 				)
-
-	// 		) net /*Every table has to have it's own alias according to MySQL spec*/
-
-	// 		INNER JOIN
-
-	// 		fda_drug_package pa on net.drugid = pa.drugid INNER JOIN
-	// 		fda_product pr on pa.productid = pr.productid
-
-	// 	GROUP BY 
-	// 		net.drugid, net.lotnum, net.expiredate";
-
-	// 	//End SQL query
-
-	// 	$result = $this->db->query($sql);
-	// 	$resultArray = $result->result();
-
-	// 	return $resultArray;
-	// }
-
 
 
 	//Provides a summary of the weighted average cost & number of doses of a single vaccine
@@ -905,7 +753,7 @@ class Vaccine extends CI_Model
 				`fda_product` Pr inner join 
 				`fda_drug_package` Pa on Pr.ProductID = Pa.ProductID inner join 
 				`vaccinetrans` Vt on Pa.DrugId = Vt.DrugId inner join
-				`transaction` T on Vt.TransId = T.TransID inner join
+				`generic_transaction` T on Vt.TransId = T.TransID inner join
 				`order_invoice` Oi on Vt.TransID = Oi.InvoiceID
 			WHERE 
 				Vt.DrugID = $aDrugID
@@ -916,7 +764,7 @@ class Vaccine extends CI_Model
 			$qryArray = $qryResult->result();
 
 			return $qryArray;
-	}
+	} //End GetSingleVacSum()
 
 	public function TransVacTransInsert($aDrugID)
 	{
@@ -925,15 +773,18 @@ class Vaccine extends CI_Model
 			$transTimestamp = date('Y-m-d H:i:s'); //time();
 			//date_default_timezone_set('America/New_York');
 			
+			$userID = $this->ion_auth->get_user_id();
+
 			$transData = array(
-				'TransDate' => $transTimestamp//$timestamp->getTimestamp()
+				'TransDate' => $transTimestamp,
+				'Employee_ID' => $userID
 			);
 
-			$this->db->insert('transaction', $transData);
+			$this->db->insert('generic_transaction', $transData);
 
 
 			//Insert into VaccineTrans table
-			$qry = "SELECT MAX(TransID) as TransID FROM `transaction`";
+			$qry = "SELECT MAX(TransID) as TransID FROM `generic_transaction`";
 			$qryResult = $this->db->query($qry);
 
 			$row = $qryResult->result();
@@ -945,16 +796,14 @@ class Vaccine extends CI_Model
 			$vacTrans = array(
 				"TransID" => $transID,
 				"DrugID" => $aDrugID,
-				//"SaleNDC10" => $barcodeArray['ndc'],
-				//"TransQty" => $this->input->post('transQty'),
-				"ExpireDate" => $this->session->expireDate,//$this->input->post('expireDate'),
-				"LotNum" => $this->session->lotNum//$this->input->post('lotNum')
+				"ExpireDate" => $this->session->expireDate,
+				"LotNum" => $this->session->lotNum
 				);
 
 			$this->db->insert('vaccinetrans', $vacTrans);
 
 			return $transData;
-	}
+	} //End TransVacTransInsert()
 
 } //End class Vaccine
 

@@ -50,5 +50,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |		my-controller/my-method	-> my_controller/my_method
 */
 $route['default_controller'] = 'welcome';
+//$route['default_controller'] = 'Inventory';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+/*
+
+ $route['default_controller'] = 'project/show_all_projects';
+ $route['projects'] = 'project/show_all_projects';
+ $route['repository'] = 'project/show_snip';
+ $route['index'] = 'auth/index';
+ $route['create-project'] = 'project/create_form';
+ $route['login'] = 'auth/login';
+ */

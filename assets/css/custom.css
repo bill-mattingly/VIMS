@@ -30,6 +30,14 @@ body .modal{
 	display: none;
 }
 
+/*Controls 'remaining value' & 'remaining doses' user messages on loanreimburse.php modal dialog box*/
+#infoRemainingValue, #infoRemainingDoses{
+	background-color: #99ccff;
+	
+	margin-top: 15px;
+	margin-bottom: 0px;
+}
+
 /*Controls spacing between radio options on loanreimburse.php view*/
 input.filterLoanOptions{
 	margin-right: 15px;
@@ -47,7 +55,14 @@ h2{
 #reimburseDosesFields
 {
 	display: none;
-} 
+}
+
+/*Controls display width of reimburseDoseQty and reimburseAmount textboxes.
+**These textboxes are on the modal dialog box on the laonreimburse.php view
+*/
+#reimburseDoseQty, #reimburseAmount{
+	width: 182px;
+}
 
 /*Elements located in the updatepriceandcost.php view*/
 #updateMsg, #nameSearchMsg, #barcodeSearchMsg

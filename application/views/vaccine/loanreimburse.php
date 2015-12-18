@@ -4,7 +4,7 @@
 	<h1>Outstanding Loans</h1>
 
 	<!-- Used to provide feedback to user -->
-	<p id='userMsg'></p>
+	<p id='userMsgMain'></p>
 
 	<div id="filterLoans">
 		<h2>Loan Sort Options</h2>
@@ -97,6 +97,9 @@ If vaccine, specify dose amount
 						<label>Quantity:</label>
 						<input id='loanQty' type='text' disabled><br/>
 
+						<label>Cost/Dose:</label>
+						<input id='perDoseLoanCost' type='text' disabled><br/>
+
 						<label>Loan Date:</label>
 						<input id='loanDate' type='text' disabled><br/>
 
@@ -109,6 +112,10 @@ If vaccine, specify dose amount
 
 					<div class='col-md-6'>
 						<h2>Reimbursement Form</h2>
+
+						<!--For displaying error messages to user-->
+						<p id='userMsgModal'></p>
+
 						<label for='reimburseSigner'>Payer Name:</label>
 						<input id='reimburseSigner' type='text' name='reimburseSigner' placeholder='Person Returning Money'><br/>
 
@@ -118,8 +125,9 @@ If vaccine, specify dose amount
 -->
 
 						<div id='reimburseCashFields'>
+							<p id='infoRemainingValue'></p>
 							<label id="lblReimburseAmount" for="reimburseAmount">Value:</label>
-							<input id="reimburseAmount" type="text" name='reimburseAmount' placeholder="Enter Monetary Value"><br/>
+							<input id="reimburseAmount" type="number" min='0' name='reimburseAmount' placeholder="Enter Monetary Value"><br/>
 						</div> <!-- /End #reimburseCash -->
 
 						<div id='reimburseDosesFields'>
@@ -130,8 +138,10 @@ If vaccine, specify dose amount
 							<label id="lblExpireDate" for="reimburseExpireDate">Expire Date:</label>
 							<input id="reimburseExpireDate" type="text" name='reimburseExpireDate' placeholder="Expiration Date"><br/>
 
+							<p id='infoRemainingDoses'></p>
 							<label id="lblReimburseDoseQty" for="reimburseDoseQty">Dose Qty:</label>
-							<input id="reimburseDoseQty" type="text" name='reimburseDoseQty' placeholder="Dose Quantity"><br/>
+							<input id="reimburseDoseQty" type="number" min='0' name='reimburseDoseQty' placeholder="Dose Quantity"><br/>
+
 
 						</div> <!-- /End #reimburseDoses -->
 
@@ -222,6 +232,10 @@ function DisplayOutstandingLoans(sortCriteria, filterCriteria){
 					var loanID = null; //assigned within for loop
 					var borrowerID = null; //assigned within for loop
 					var drugID = null; //assigned within for loop
+					var remainingDoses = null; //assigned within for loop
+					var remainingValue = null; //assigned within for loop
+					var perDoseLoanCost = null; //assigned in for loop
+
 					var currentLoan = element; //Gets the loan currently being iterated over by the forEach loop
 					
 					var objKeysArray = Object.keys(element); //Array to be iterated over in "for" loop
@@ -245,6 +259,17 @@ function DisplayOutstandingLoans(sortCriteria, filterCriteria){
 							case "Drug ID":
 								drugID = currentLoan[key];
 								break;
+							case "Per Dose Loan Cost":
+								perDoseLoanCost = currentLoan[key];
+								break;
+							case "Remaining Doses":
+								remainingDoses = currentLoan[key];
+								tableData += "<td>" + currentLoan[key] + "</td>";
+								break;
+							case "Outstanding Loan Value":
+								remainingValue = currentLoan[key];
+								tableData += "<td>" + currentLoan[key] + "</td>";
+								break;
 							default:
 								tableData += "<td>" + currentLoan[key] + "</td>";
 								break;
@@ -253,7 +278,7 @@ function DisplayOutstandingLoans(sortCriteria, filterCriteria){
 
 
 					//Add checkbox to final column of row
-					tableData += "<td><input id='checkBoxLoanID" + loanID + "' type='checkbox' value='" + loanID + "' data-loanID='" + loanID + "' data-borrowerID='" + borrowerID + "' data-drugID='" + drugID + "' data-toggle='modal' data-target='#loanModal'></td>";
+					tableData += "<td><input id='checkBoxLoanID" + loanID + "' type='checkbox' value='" + loanID + "' data-loanID='" + loanID + "' data-borrowerID='" + borrowerID + "' data-drugID='" + drugID + "' data-remainingdoses='"+ remainingDoses +"' data-remainingvalue='"+ remainingValue +"' data-perdoseloancost='"+ perDoseLoanCost +"' data-toggle='modal' data-target='#loanModal'></td>";
 
 					//Close row tag
 					tableData += "</tr>";
@@ -285,6 +310,27 @@ $('#loanModal').on('show.bs.modal', function(event){
 	
 	var checkBox = event.relatedTarget;
 
+	//Check to see if loanid exists already in loan reimbursement table (i.e. if a row in the table has the same "loan id" in it)
+	//If so, check (& then disabled) the #partialPayment checkbox (so user can't uncheck it)
+	//If not, then uncheck the checkbox
+	var loanID = $(checkbox).data('loanid');
+
+
+	$.ajax({
+		url: "<?php echo site_url('Inventory/CheckPartialLoanReturn'); ?>",
+		method: 'POST',
+		data: {'LoanID': loanid},
+		dataType: 'JSON',
+		success: function(loanReturnResult){
+
+		},
+		error: function(errorResult){
+			console.log("An error checking on loan return transactions occurred");
+		}
+	}); //End $.ajax()
+
+
+
 	var count = 0;
 
 	var selectedRow = $(checkBox).closest('tr');
@@ -293,9 +339,13 @@ $('#loanModal').on('show.bs.modal', function(event){
 
 	$(selectedRow).find('td').each(function(){
 		var cell = $(this).html();
-		console.log(cell);
+//		console.log(cell);
 		loanDataArray.push(cell);
 	}); //End .each()
+
+	//Enable controls that might be disabled
+	$("#rdoReimburseVials").prop('disabled', false);
+	$("#btnReimburse").prop('disabled', false);
 
 	//Populate loan information modal text boxes
 	$("#loanVacName").val(loanDataArray[0]);
@@ -303,6 +353,10 @@ $('#loanModal').on('show.bs.modal', function(event){
 	$("#loanExpireDate").val(loanDataArray[5]);
 
 	$("#loanQty").val(loanDataArray[6]);
+
+	var loanCostPerDose = parseFloat($("input[type='checkbox']:checked").data('perdoseloancost'));
+	$("#perDoseLoanCost").val(loanCostPerDose);
+
 	$("#loanDate").val(loanDataArray[3]);
 	$("#loanBorrowerName").val(loanDataArray[1]);
 	$("#loanSigner").val(loanDataArray[2]);
@@ -321,12 +375,28 @@ $('#loanModal').on('show.bs.modal', function(event){
 	//Reset the selected radio button so that it defaults to "cash" option
 	$('#rdoReimburseCash').prop('checked', true);
 
+	//Display to user the remaining loan value (since the "Cash Payment" option is the default)
+	var remainingValue = parseFloat($(checkBox).data('remainingvalue'));
+	$("#infoRemainingValue").html("Remaining Loan Value: " + remainingValue);
+
+	//Set max attribute of #reimburseAmount textbox to the maximum loan value
+	$("#reimburseAmount").attr('max', remainingValue);
+
+	//Disable #rdoReimburseVials if loanCostPerDose > remainingValue (means a half dose was reimbursed (through a prior cash reimbursement) & thus the only valid option is to reimburse the remaining loan value with cash (rather than doses))
+	if(loanCostPerDose > remainingValue)
+	{
+		$("#rdoReimburseVials").prop('disabled', true);	
+
+		//Give user feedback
+		DisplayErrorMsg("#userMsgModal");
+		$("#userMsgModal").html("Cost Per Dose Greater Than Residual Loan Value. Must Reimburse Through Cash Transaction Only");
+
+	} //End if
+
+
 	//Hide the "doses" form on the modal & show the "cash" form on the modal
 	$("#reimburseCashFields").css('display', 'block');
 	$("#reimburseDosesFields").css('display', 'none');
-
-	//Uncheck 'Is Partial Repayment' checkbox
-	$('#partialPayment').prop('checked', false);
 
 }); //End #loanModal.on('show.bs.modal')
 
@@ -405,12 +475,28 @@ $("input[type='radio'][name='loanReimburseType']").click(function(){
 		$("#reimburseSigner").attr('placeholder', 'Person Returning Money');	
 		$("#reimburseDosesFields").css('display', 'none');
 		$("#reimburseCashFields").css('display', 'block');
+
+		//Add user msg on modal form to tell user remaining value
+		var remainingValue = $("input[type='checkbox']:checked").data('remainingvalue');
+		$("#infoRemainingValue").html("Remaining Loan Value: " + remainingValue);
+
+		//Set max value of #reimburseAmount textbox = remainingValue
+		$("#reimburseAmount").attr('max', remainingValue);
+
 	} //End if
 	else //If "cash" is not selected, change placeholder text in "signer" textbox, hide the "cashFields" div content, and show the "dosesFields" div content
 	{
 		$("#reimburseSigner").attr('placeholder', 'Person Returning Vials');
 		$('#reimburseCashFields').css('display', 'none');
 		$("#reimburseDosesFields").css('display', 'block');
+
+		//Add user msg on modal form to tell user remaining doses
+		var remainingDoses = $("input[type='checkbox']:checked").data('remainingdoses');
+		$("#infoRemainingDoses").html("Remaining Doses to be Returned: " + remainingDoses);
+
+		//Set max value of #reimburseDoseQty textbox to remainingDoses
+		$("#reimburseDoseQty").attr('max', remainingDoses);
+
 	} //End else
 
 }); //End (input[type='radio'][name='loanReimburseType']).click()
@@ -489,8 +575,8 @@ $("#btnReimburse").click(function(){
 			console.log(result + ". Reimburse success");
 
 			//Provide user feedback
-			$("#userMsg").html("Loan Reimbursement Successful");
-			DisplaySuccessMsg();
+			$("#userMsgMain").html("Loan Reimbursement Successful");
+			DisplaySuccessMsg("#userMsgMain");
 
 			//Refresh list of loans in the table
 			var sortCategory = $("input[type='radio'][name='filterLoanOptions']:checked").val();
@@ -502,8 +588,8 @@ $("#btnReimburse").click(function(){
 			console.log('Reimbursement error occurred');
 
 			//User feedback
-			$("#userMsg").html("Loan Reimbursement Failed");
-			DisplayErrorMsg();
+			$("#userMsgMain").html("Loan Reimbursement Failed");
+			DisplayErrorMsg("#userMsgMain");
 
 
 		} //End error function
@@ -517,30 +603,161 @@ $("#btnReimburse").click(function(){
 // }); //End #btnClose.click()
 
 
+//Controls validation of user input into #reimburseDoseQty field (checks entered doses against remaining doses)
+$("#reimburseDoseQty").focusout(function(){
+	//Check entered value against remaining doses
+	var enteredDoses = parseFloat(($("#reimburseDoseQty").val()), 10);
+	var remainingDoses = parseFloat($("input[type='checkbox']:checked").data('remainingdoses'));
+
+	//Enable submit button (by default)
+	$("#btnReimburse").prop('disabled', false);
+
+	//Clear user message element
+	$("#userMsgModal").attr('background-color', 'initial');
+	$("#userMsgModal").html('');
+
+	if(enteredDoses > remainingDoses || enteredDoses <= 0)
+	{
+		//Disable "submit" button
+		$("#btnReimburse").attr('disabled', true);
+
+		//Tell user to correct the entered doses
+		DisplayErrorMsg("#userMsgModal");
+
+		if(enteredDoses > remainingDoses)
+		{
+			$("#userMsgModal").html("Too Many Doses Entered");
+		} //End if
+		else
+		{
+			$("#userMsgModal").html("Invalid Number of Doses");
+		} //End else
+
+		//Clear the entered doses field & set focus to the field
+		$("#reimburseDoseQty").val('');
+		$("#reimburseDoseQty").focus();
+
+	} //End if
+	else if (enteredValue < remainingDoses) //Check the "Partial Repayment" Checkbox if Entered Value < Remaining Doses
+	{
+		//Check partial payment checkbox
+		$("#partialPayment").prop('checked', true);
+
+		//Check to make sure partial doses aren't being reimbursed
+		//Checks to see if remainingDoses/enteredValue has a remainder value
+		if(remainingDoses % enteredValue != 0)
+		{
+			//Set user message
+			DisplayErrorMsg("#userMsgModal");
+			$("#userMsgModal").html("Must Reimburse Doses in Whole Quantities or Reimburse with Cash");
+
+			//Disable submit button
+			$("#btnReimburse").prop('disabled', true);
+
+			//Clear #reimburseDoseQty field
+			$("#reimburseDoseQty").val('');
+
+			//Set focus to #reimburseDoseQty field
+			$("#reimburseDoseQty").focus();
+		}
+
+
+	} //End else if
+
+
+
+}); //End #reimburseDoseQty.focusout()
+
+//Controls validation of user input into #reimburseAmount field (checks entered doses against remaining value)
+$("#reimburseAmount").focusout(function(){
+	//Check entered value against remaining value
+	var enteredValue = parseFloat($("#reimburseAmount").val());
+	var remainingAmount = parseFloat($("input[type='checkbox']:checked").data('remainingvalue'));
+
+	//Enable submit button (by default)
+	$("#btnReimburse").prop('disabled', false);
+
+	//Clear user message element
+	$("#userMsgModal").attr('background-color', 'initial');
+	$("#userMsgModal").html('');
+
+	if(enteredValue > remainingAmount || enteredValue <= 0)
+	{
+		//Disable "submit" button
+		$("#btnReimburse").attr('disabled', true);
+
+		//Tell user to correct the entered doses
+		DisplayErrorMsg("#userMsgModal");
+
+		if(enteredValue > remainingAmount)
+		{
+			$("#userMsgModal").html("Returned Amount Higher Than Loan");
+		} //End if
+		else
+		{
+			$("#userMsgModal").html("Returned Amount is Invalid");
+		} //End else
+
+		//Clear the entered doses field & set focus to the field
+		$("#reimburseAmount").val('');
+		$("#reimburseAmount").focus();
+
+	} //End if
+	else if (enteredValue < remainingAmount) //Check the "Partial Repayment" Checkbox if Entered Value < Remaining Amount
+	{
+		$("#partialPayment").prop('checked', true);
+	} //End else if
+
+
+}); //End #reimburseAmount.focusout()
+
+
 //Controls display of #userMsg element if AJAX requests are successful or user input is valid
-function DisplayErrorMsg()
+function DisplayErrorMsg(jQueryID)
 {
-	//Display userMsg element
-	$("#userMsg").css('display', 'block');
-	$("#userMsg").css('margin-left', '341.5px');
-	$("#userMsg").css('margin-right', '341.5px');
+	switch(jQueryID)
+	{
+		case '#userMsgModal':
+			//Display userMsg element
+			$(jQueryID).css('display', 'block');
+			break;
+		case '#userMsgMain':
+			//Display userMsg element
+			$(jQueryID).css('display', 'block');
+			$(jQueryID).css('margin-left', '341.5px');
+			$(jQueryID).css('margin-right', '341.5px');
+			break;
+		default:
+			break;
+	}
 
 	//Change background color & text color
-	$("#userMsg").css('background-color', '#f76e6e');
-	$("#userMsg").css('color', 'black');
+	$(jQueryID).css('background-color', '#f76e6e');
+	$(jQueryID).css('color', 'black');
 } //End DisplaySuccessMsg()
 
 //Controls display of #userMsg element in AJAX requests are unsuccessful or user input is invalid
-function DisplaySuccessMsg()
+function DisplaySuccessMsg(jQueryID)
 {
-	//Display userMsg element
-	$("#userMsg").css('display', 'block');
-	$("#userMsg").css('margin-left', '341.5px');
-	$("#userMsg").css('margin-right', '341.5px');
+	switch(jQueryID)
+	{
+		case '#userMsgModal':
+			//Display userMsg element
+			$(jQueryID).css('display', 'block');
+			break;
+		case '#userMsgMain':
+			//Display userMsg element
+			$(jQueryID).css('display', 'block');
+			$(jQueryID).css('margin-left', '341.5px');
+			$(jQueryID).css('margin-right', '341.5px');
+			break;
+		default:
+			break;
+	}
 
 	//Change background color & text color
-	$("#userMsg").css('background-color', '#99ccff');
-	$("#userMsg").css('color', 'black');
+	$(jQueryID).css('background-color', '#99ccff');
+	$(jQueryID).css('color', 'black');
 } //End DisplayErrorMsg()
 
 </script>

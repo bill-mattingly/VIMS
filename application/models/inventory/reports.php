@@ -7,12 +7,9 @@ class Reports extends CI_Model
 		$this->load->database();
 	}
 
-
-
 	//Select Statement
 	public function InventorySummary()
 	{
-		
 		$sql = 
 		"SELECT 
 			tbl1.ProprietaryName as 'Proprietary Name', 
@@ -80,7 +77,6 @@ class Reports extends CI_Model
 					vt.LotNum as LotNum,
 					vt.ExpireDate,
 					'N/A' as LoanReturn
-					/*Sum(lr.total_doses) as LoanReturn  */
 				FROM 
 					`vaccinetrans` vt inner join 
 					`loanreturn` lr on vt.TransId = lr.ReturnId
@@ -89,94 +85,43 @@ class Reports extends CI_Model
 			) as tbl4 on tbl1.drugid = tbl4.drugid AND tbl1.lotnum = tbl4.lotnum
 			";
 
-		
-		//$sql =
 
-			/* "SELECT 
-				pr.proprietaryname as 'Proprietary Name',
-				pr.nonproprietaryname as 'Non-Proprietary Name', 
-				pr.labelername as 'Labeler Name', 
-				pa.salendc10 as 'Carton NDC10', 
-				pa.usendc10 'Dose NDC10', 
-				pa.fulldescrip as 'Description', 
-				pa.drug_cost as 'Clinic Cost', 
-				pa.trvl_chrg as 'Travel Patient Chrg', 
-				pa.refugee_chrg as 'Refugee Patient Chrg', 
-				net.drugid as 'Drug ID', 
-				net.lotnum as 'Lot Number', 
-				net.expiredate as 'Expire Date', 
-				sum(net.vacdoses) as 'Net Doses'
-			*/
-	
-		/*
-			"SELECT 
-				pr.proprietaryname as 'Proprietary Name',
-				pa.packagedescrip as 'Description',  
-				net.lotnum as 'Lot Number', 
-				net.expiredate as 'Expire Date', 
-				sum(net.vacdoses) as 'Net Doses'
-			FROM
-				(
-					/*Invoice transactions
-						(SELECT
-						 	vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, sum(oi.doses_per_package * oi.packageqty) as vacdoses 
-						 FROM 
-						 	vaccinetrans vt inner join order_invoice oi on vt.transid = oi.invoiceid 
-						 GROUP BY 
-						 	vt.drugid, vt.lotnum, vt.expiredate)
+//New Query which provides corrected dose quantities
 
-					UNION
-					/*Administer transactions 
-						(SELECT 
-							a.package_drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, SUM( a.doses_given)*-1 AS vacdoses /* Multiplied by '-1' to show a reduction in inventory
-						FROM 
-							vaccinetrans vt INNER JOIN administer a ON vt.transid = a.administerid
-						GROUP BY 
-							vt.drugid, vt.lotnum, vt.expiredate)
+// select net.transtype, net.drugid, net.lotnum, net.expiredate, net.returndoses, cash_doses.cashdoses
+// from
+// (
+// select 'order' as transtype, vt.drugid, vt.lotnum, vt.expiredate, (oi.PACKAGEQTY * oi.DOSES_PER_PACKAGE) as orderdoses from order_invoice oi inner join vaccinetrans vt on oi.invoiceid = vt.transid
+// union all
+// select 'administer' as transtype, vt.drugid, vt.lotnum, vt.expiredate, a.doses_given*-1 as administerdoses from administer a inner join vaccinetrans vt on a.administerid = vt.transid
+// union all
+// select 'order' as transtype, vt.drugid, vt.lotnum, vt.expiredate, lo.total_doses*-1 as loandoses from loanout lo inner join vaccinetrans vt on lo.loanid = vt.transid
+// union all
+// select 'order' as transtype, d.drugid, d.LOTNUM, d.EXPIREDATE, sum(d.dose_qty) as returndoses from loanreturn lr inner join dose_return_type d on lr.returnid = d.return_id
+// group by d.drugid, d.LOTNUM, d.EXPIREDATE
+// ) net
+// /*
+// group by net.drugid
+// */
 
-					UNION
-					/*LoanOut transactions
-						(SELECT 
-							vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, SUM(lo.doses_per_package * lo.packageqty)*-1 AS vacdoses /* Multiplied by '-1' to show a reduction in inventory
-						FROM
-							vaccinetrans vt INNER JOIN loanout lo ON vt.transid = lo.borrowerid
-						GROUP BY
-							vt.drugid, vt.lotnum, vt.expiredate)
+// left join
 
-					UNION
-					/*LoanReturn transactions
-						(SELECT
-							vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, sum(lr.doses_per_package * lr.packageqty) as vacdoses
-						FROM
-							vaccinetrans vt INNER JOIN loanreturn lr on vt.transid = lr.returnid
-						GROUP BY
-							vt.drugid, vt.lotnum, vt.expiredate
-						)
 
-				) net /*Every table has to have it's own alias according to MySQL spec
+// (select vt.drugid, vt.lotnum, vt.expiredate, sum((c.amount/lo.loan_dose_price)) as cashdoses from loanreturn lr inner join cash_return_type c on lr.returnid = c.return_id
+// inner join loanout lo on lr.loanid = lo.loanid inner join vaccinetrans vt on lo.loanid = vt.transid
+// group by vt.drugid, vt.lotnum, vt.expiredate) cash_doses on net.drugid = cash_doses.drugid
+// group by net.drugid, net.lotnum, net.expiredate
 
-				INNER JOIN
 
-				fda_drug_package pa on net.drugid = pa.drugid INNER JOIN
-				fda_product pr on pa.productid = pr.productid
-
-			GROUP BY 
-				net.drugid, net.lotnum, net.expiredate";
-		*/
 
 		$qryResult = $this->db->query($sql);
 
-		//return $qryResult;
-
 		//Turn query result into an array of row objects (each row in the result is an object)
 		$arrayResult = $qryResult->result();
-		//var_dump($arrayResult);
 
 		//Remove rows where net inventory == 0
 		$modifiedResult = null;
 		$counter = 0;
-
-		//var_dump($arrayResult);
 
 		foreach($arrayResult as $vacInventoryRow)
 		{
@@ -185,7 +130,7 @@ class Reports extends CI_Model
 				$modifiedResult[$counter] = $vacInventoryRow;
 				$counter++;
 			}
-		}
+		} //End foreach()
 
 		if($modifiedResult == null) //If query result == null  (i.e. nothing is in inventory after rows == 0 are removed), return the query's column headers
 		{
@@ -205,13 +150,7 @@ class Reports extends CI_Model
 					$endPosition = strpos(substr($strSegment, ($startPosition + 1)), "'") + $startPosition; //gets the start position of the 2nd "'". The string to search is the substring of $strSegement beginning immediately after the first "'". $startPosition needs to be added back in order to get the true position of the 2nd "'" since $strPos only returns the position of the first occurance of whatever is searched (thus the search string was the part of the original string that began after the very first "'")
 					$strLength = ($endPosition - $startPosition) + 1;
 
-					//var_dump($startPosition);
-					//var_dump($endPosition);
-					//var_dump($strLength);
-
-
 					$headerStr = substr($strSegment, $startPosition, $strLength);  //(strlen($strSegment) - )length);
-					//var_dump($headerStr);
 
 					if($strLength > 1) //This condition exists to filter out the $strSegment variables that don't contain any single quotes ('') - if you look at the $sql variable some string segments won't contain "'" since the $sql variable was broken into segments using the "," delimiter
 					{
@@ -220,14 +159,9 @@ class Reports extends CI_Model
 
 				}//End foreach
 
-				//substr($sql);
-
-
-
 			$modifiedResult[1] = $headerRowObject;
 
-			//var_dump($modifiedResult);
-		}
+		} //End if
 
 
 		//Return modified query result to the calling function (result no longer includes rows where net inventory == 0)
@@ -239,8 +173,6 @@ class Reports extends CI_Model
 
 	public function TransactionsByType($transType)
 	{
-		//$type = $transType;
-
 		$sql = 
 		   "SELECT
 		    net.transid as 'Transaction ID',
@@ -265,7 +197,7 @@ class Reports extends CI_Model
 					(SELECT
 					 	vt.transid as transid, t.transdate as transdate, vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, (oi.doses_per_package * oi.packageqty) as vacdoses, 'Invoice' as transtype 
 					 FROM 
-					 	vaccinetrans vt inner join order_invoice oi on vt.transid = oi.invoiceid inner join transaction t on t.transid = vt.transid
+					 	vaccinetrans vt inner join order_invoice oi on vt.transid = oi.invoiceid inner join generic_transaction t on t.transid = vt.transid
 					)
 
 				UNION ALL /*Need keyword ALL to prevent 'duplicate rows' from being removed; duplicate row removal is the default action of UNION command) */
@@ -273,7 +205,7 @@ class Reports extends CI_Model
 					(SELECT 
 						vt.transid as transid, t.transdate as transdate, a.package_drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, (a.doses_given)*-1 AS vacdoses, 'Administer' as transtype /* Multiplied by '-1' to show a reduction in inventory*/
 					FROM 
-						vaccinetrans vt INNER JOIN administer a ON vt.transid = a.administerid inner join transaction t on t.transid = vt.transid
+						vaccinetrans vt INNER JOIN administer a ON vt.transid = a.administerid inner join generic_transaction t on t.transid = vt.transid
 					)
 
 				UNION ALL
@@ -281,7 +213,7 @@ class Reports extends CI_Model
 					(SELECT 
 						vt.transid as transid, t.transdate as transdate, vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, (lo.total_doses)*-1 AS vacdoses, 'Loan Out' as transtype /* Multiplied by '-1' to show a reduction in inventory*/
 					FROM
-						vaccinetrans vt INNER JOIN loanout lo ON vt.transid = lo.loanid INNER JOIN transaction t on t.transid = vt.transid /*lo.borrowerid*/
+						vaccinetrans vt INNER JOIN loanout lo ON vt.transid = lo.loanid INNER JOIN generic_transaction t on t.transid = vt.transid /*lo.borrowerid*/
 					)
 
 				UNION ALL
@@ -289,7 +221,7 @@ class Reports extends CI_Model
 					(SELECT
 						vt.transid as transid, t.transdate as transdate, vt.drugid as drugid, vt.lotnum as lotnum, vt.expiredate as expiredate, (lr.total_doses) as vacdoses, 'Loan Return' as transtype
 					FROM
-						vaccinetrans vt INNER JOIN loanreturn lr on vt.transid = lr.returnid inner join transaction t on t.transid = vt.transid
+						vaccinetrans vt INNER JOIN loanreturn lr on vt.transid = lr.returnid inner join generic_transaction t on t.transid = vt.transid
 					)
 
 			) net /*Every table has to have it's own alias according to MySQL spec*/
@@ -324,61 +256,19 @@ class Reports extends CI_Model
 					$resultsArray = $transType; 
 					return $resultsArray; //An error occurred
 					break;
-			}
+			} //End switch
 
 
 			$sql .= "ORDER BY
 						net.transid";
 
-			//return $sql;
-
 			//Submit query to get results
 			$theResult = $this->db->query($sql); //table->generate($sql); //db->query($sql);
 			$resultsArray = $theResult->result();
 
-			//If number of rows is 0, then assign an array of header values to create the table
-//			if($theResult->num_rows() == 0)
-//			{
-				//Normal query results are returned as an array of objects (each item in the array is a row in the result set)
-				//Thus, need to create a generic object with just the information for the header row so the "Inventory" can display a blank table without throwing an error
-
-				//Header row object
-//				$headerRowObj = new stdClass();
-//				$headerRowObj->{'Transaction ID'} = 'Transaction ID';
-//				$headerRowObj->{'Transaction Date'} = 'Transaction Date';
-//				$headerRowObj->{'Proprietary Name'} = 'Proprietary Name';
-//				$headerRowObj->{'Non-Proprietary Name'} = 'Non-Proprietary Name';
-//				$headerRowObj->{'Lot Number'} = 'Lot Number';
-//				$headerRowObj->{'Expire Date'} = 'Expire Date';
-//				$headerRowObj->{'Description'} = 'Description';
-//				$headerRowObj->{'Transaction Doses'} = 'Transaction Doses';
-//				$headerRowObj->{'Transaction Type'} = 'Transaction Type';
-
-				//Add header row object to $resultArray array variable (to mimick the array of objects result returned by a query with 1 or more records)
-//				$resultsArray[0] = $headerRowObj;
-
-//			} //End if
-
-
-			// 	$resultsArray = array(
-			// 		0 => 'Transaction ID',
-			// 		1 => 'Transaction Date',
-			// 		2 => 'Proprietary Name',
-			// 		3 => 'Non-Proprietary Name',
-			// 		4 => 'Lot Number',
-			// 		5 => 'Expire Date',
-			// 		6 => 'Description',
-			// 		7 => 'Transaction Doses',
-			// 		8 => 'Transaction Type'
-			// 	);
-			// }
-			// $bool = ($theResult->num_rows() == 0);
-			// $resultsArray[0] = $bool; //$theResult->num_rows();
-			// //$resultsArray = 'hi';
 			return $resultsArray;
 
 	} //End TransactionsByType()
-
 
 } //End Reports class
 
